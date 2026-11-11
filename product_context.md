@@ -19,7 +19,7 @@ EyeMotion 是一款面向眼健康的高性能**动态视觉追踪训练**桌面
 ## 3. 架构分层（Phase 2 后）
 - `eyemotion-core`：纯逻辑库（无 Tauri 依赖）——`game_state`（状态机/物理）、`ball`（球体）、`visual_config`（主题 SSOT）、`config`（用户配置持久化）、`stage_config`、`validation`（入参校验）、`error`、`events`。
 - `src-tauri`：Tauri v2 应用壳——`commands/{game,window,config,theme}.rs` 命令模块、`state.rs`（AppState：Mutex<GameState> + Mutex<UserConfig>）、`lib.rs`（Builder/插件/invoke_handler）。
-- `ui/`：TypeScript + Canvas2D 前端——`game.ts`（主循环/事件）、`renderer.ts`（绘制，主题来自后端）、`bridge.ts`（命令封装）、`audio.ts`（WebAudio，音频唯一真实实现）、`i18n.ts`、`input.ts`、`language-menu.ts`。
+- `ui/`：TypeScript + Canvas2D 前端——`game.ts`（主循环/事件）、`renderer.ts`（绘制，主题来自后端）、`bridge.ts`（命令封装）、`audio.ts`（WebAudio，音频唯一真实实现）、`i18n.ts`、`input.ts`。
 
 ## 4. 主题与品牌（SSOT）
 - 品牌主色：`#0B1B7D`（深蓝背景）、`#153FA1`（网格浅色）。

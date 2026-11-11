@@ -13,7 +13,8 @@
 - [x] 更新方案/AGENTS/product_context/todo/multi_platform/CHANGELOG 与 ADR
 - [x] 移除 release-android job、package android/ios 脚本、src-tauri/gen/android、MOBILE_ENV_SETUP.md、local_env.ps1
 - [x] 移除前端移动 UI（virtual-controls、移动布局分支、.mobile 样式）与 Rust 移动条件编译
-- [ ] 全量门禁 + 桌面构建（已完成）+ reviewer/tester 独立验收 + 提交推送
+- [x] 全量门禁 + 桌面构建 + reviewer/tester 独立验收 + 提交推送
+- [x] 终审残余清理（移动图标 android/ios、PR 模板 Android/iOS 文案、crate-type 收敛 rlib、language-menu 死代码）
 
 ## 后续可选
 - [ ] E2E：Playwright 需先做 Bridge mock 与 Canvas headless 抽象（D-4 评估暂缓）

@@ -1,7 +1,6 @@
 import { Renderer } from './renderer';
 import { AudioPlayer } from './audio';
 import { InputHandler } from './input';
-import { createLanguageMenu } from './language-menu';
 import { setLocale } from './i18n';
 import { Bridge, GameState, GameEvent } from './bridge';
 
@@ -52,8 +51,6 @@ export class Game {
                 // Better to leave it paused and let user resume via UI.
             }
         });
-
-        createLanguageMenu();
 
         this.renderer.loadTheme();
         this.audio.init();

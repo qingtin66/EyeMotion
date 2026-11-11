@@ -14,7 +14,7 @@
 | Phase 2 架构 SSOT（A-1..A-6） | ✅ 完成（提交 e2aacb0） |
 | Phase 3 仓库卫生（H-1..H-5） | ✅ 完成（H-1/H-2/H-3/H-4/H-5 全部落地） |
 | Phase 4 依赖与平台（D-1..D-4） | ✅ 完成（本地门禁全绿；macOS CI 构建通过；RustSec 5 项传递依赖漏洞已修复） |
-| Phase 5 桌面-only 收敛（v0.3） | 🚧 实施完成，待 reviewer/tester 独立验收 |
+| Phase 5 桌面-only 收敛（v0.3） | ✅ 已完成（reviewer 终审 + tester 独立验证 PASS，残余清理已提交） |
 
 评审：reviewer 最终只读验收 task-8 = **PASS**（0 阻断项）。
 
@@ -183,10 +183,11 @@
 
 - **文档/方案**：`docs/plans/modernization-plan.md` 升 v0.3；新增 ADR-0001；AGENTS.md、product_context.md、todo.md、multi_platform.md、CHANGELOG 同步为桌面三平台。
 - **构建链**：`.github/workflows/release.yml` 删除 `release-android` job；`package.json` 删除 `build:android`/`build:ios`；`build_all.ps1` 删除 Android 段；删除 `MOBILE_ENV_SETUP.md`、`local_env.ps1` 与 `src-tauri/gen/android`（40 文件）。
-- **前端**：删除 `VirtualControls` 与虚拟控件；renderer 移除 `isMobile` 分支（字体/按钮缩放、Game Over/Pause 横排、移动暂停按钮、stats 边距）；game.ts 去掉移动 UA 与移动退出分支；`ui/index.html`/`ui/css/style.css` 移除移动容器与 `.mobile` 样式；语言菜单拆为 `ui/js/language-menu.ts`。
+- **前端**：删除 `VirtualControls` 与虚拟控件；renderer 移除 `isMobile` 分支（字体/按钮缩放、Game Over/Pause 横排、移动暂停按钮、stats 边距）；game.ts 去掉移动 UA 与移动退出分支；`ui/index.html`/`ui/css/style.css` 移除移动容器与 `.mobile` 样式；终审后删除不可达的 `ui/js/language-menu.ts`、对应 import/调用与 `.language-menu` 样式（桌面无打开入口，属 pre-existing 死代码）。
 - **Rust**：移除 `lib.rs` 的 `mobile_entry_point`、`commands/window.rs` 的 Android/iOS 条件编译与空实现、`eyemotion-core/src/config.rs` 的移动配置分支。
 
 ### 验收
 
 - 本地门禁已通过：npm check:version / typecheck / lint / format:check / test（21 passed）/ build，cargo fmt / clippy -D warnings / test（54 passed），`npx tauri build --debug --no-bundle` 成功。
-- 待 reviewer 只读终审、tester 独立复验后补记结论并提交。
+- reviewer task-20 只读终审 **PASS（0 阻断）**、tester task-21 独立验证 **PASS**（HEAD `0a5b91e`，69 files +265/−1748，三平台桌面 CI 完整）。
+- **终审残余清理（task-22）**：删除 `src-tauri/icons/android`（17 文件）与 `src-tauri/icons/ios`（18 文件）移动图标；`.github/PULL_REQUEST_TEMPLATE.md` 影响面移除 Android/iOS；`src-tauri/Cargo.toml` `crate-type` 由 `["staticlib", "cdylib", "rlib"]` 收敛为 `["rlib"]`；删除无入口语言菜单死代码。清理后全量门禁与桌面构建复跑通过。

@@ -18,7 +18,6 @@
 
 - [ ] 影响 Windows 构建
 - [ ] 影响 macOS / Linux 构建
-- [ ] 影响 Android / iOS
 - [ ] 影响版本号（已跑 `check:version`）
 
 ## 备注 / Notes
