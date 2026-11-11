@@ -36,5 +36,5 @@ EyeMotion 是面向桌面大屏的视觉追踪训练应用，交互以鼠标与�
 ## 实施要点
 
 - 删除 `.github/workflows/release.yml` 的 `release-android` job、`package.json` 的 Android/iOS 脚本、`src-tauri/gen/android`、`MOBILE_ENV_SETUP.md`、`local_env.ps1` 与 `build_all.ps1` 的 Android 段。
-- 移除前端移动 UI（VirtualControls、移动布局分支、`.mobile` 样式）与 Rust 移动条件编译；语言菜单拆为独立的 `ui/js/language-menu.ts`。
+- 移除前端移动 UI（VirtualControls、移动布局分支、`.mobile` 样式）与 Rust 移动条件编译；语言菜单曾拆为独立的 `ui/js/language-menu.ts`，后于提交 `46cc35b` 因桌面端无打开入口作为死代码删除。
 - 更新 AGENTS.md、product_context.md、todo.md、multi_platform.md、CHANGELOG 与现代化计划 v0.3。
