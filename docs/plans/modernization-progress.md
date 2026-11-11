@@ -11,7 +11,7 @@
 | Phase 1 质量门禁（Q-1..Q-8） | ✅ 完成（Q-7 已于 Phase 4 落地；Q-8 Playwright 冒烟按 D-4 评估暂缓） |
 | Phase 2 架构 SSOT（A-1..A-6） | ✅ 完成（提交 e2aacb0） |
 | Phase 3 仓库卫生（H-1..H-5） | ✅ 完成（H-1/H-2/H-3/H-4/H-5 全部落地） |
-| Phase 4 依赖与平台（D-1..D-4） | ✅ 完成（本地门禁全绿；macOS/Android 构建待 CI 验证） |
+| Phase 4 依赖与平台（D-1..D-4） | ✅ 完成（本地门禁全绿；macOS CI 构建通过；Android 待首次 tag 实证；RustSec 5 项传递依赖漏洞已修复） |
 
 评审：reviewer 最终只读验收 task-8 = **PASS**（0 阻断项）。
 
@@ -21,6 +21,8 @@
 - `5a181c8` chore(ci): Phase1 质量门禁基建——工具链钉桩、ESLint/Prettier、Vitest、CI 与依赖审计
 - `d7fefd2` docs(plans): 记录 Phase0+1 执行进度、门禁实测与豁免项
 - `e2aacb0` refactor(phase2): 架构 SSOT——主题单一来源、状态权威归后端、命令模块化、死代码清理
+- `6e43198` chore(phase4): 依赖与平台现代化——Rust/前端升级、macOS/Android CI、Q-7 安全收尾
+- `aa3b4b1` fix(security): 修复 RustSec 传递依赖漏洞与 CI security 权限
 
 ## 门禁实测（本地全绿，reviewer 独立复跑一致）
 
@@ -152,4 +154,15 @@
 | `npm audit --omit=dev --audit-level=high` | ✅ 0 vulnerabilities |
 | workflow YAML 解析 | ✅ ci.yml / release.yml 均通过 js-yaml |
 
-> 说明：macOS / Android 实际构建需在 GitHub Actions 运行后确认；本地为 Windows，仅静态校验 workflow 与 Android 模板版本。
+> 说明：macOS CI 构建已实测通过（run 42970839854，bundle-macos success）；Android 实际构建仍需首次 tag 发布验证；本地为 Windows，仅静态校验 workflow 与 Android 模板版本。
+
+### Phase 4 安全门禁修复（CI security job）
+
+- **问题**：CI run 42970839854 的 security job 失败。两层原因：
+  1. `rustsec/audit-check@v2.0.0` 使用 `GITHUB_TOKEN` 创建 check run 时报 `Resource not accessible by integration`；job 缺少 `permissions`。
+  2. `cargo audit` 报告 5 项漏洞（传递依赖）：RUSTSEC-2026-0007 `bytes 1.11.0`、RUSTSEC-2026-0194/0195 `quick-xml 0.38.4`、RUSTSEC-2026-0235 `rkyv 0.7.46`、RUSTSEC-2026-0009 `time 0.3.44`。
+- **修复**：
+  - `.github/workflows/ci.yml` security job 增加 `permissions: contents: read / checks: write / security-events: write`。
+  - Cargo.lock 精准升级：`bytes 1.11.1`、`time 0.3.47`（time-core 0.1.8 / time-macros 0.2.27）、`plist 1.10.3`（`quick-xml 0.42.0`）、`rust_decimal 1.43.0`（移除 `rkyv 0.7`、`bytecheck` 等）、`byte-unit 5.2.6`、`tokio 1.53.3`、`anyhow 1.0.103`（附带修复 RUSTSEC-2026-0190）。
+  - 验证：`cargo fmt --check` clean、`cargo clippy --workspace --all-targets -- -D warnings` exit 0、`cargo test --workspace` 54 passed；本地 `cargo audit` exit 0，**0 vulnerabilities**（10 allowed warnings）。
+- **非阻断 warning 仍存在**：8 unmaintained（fxhash、pin-utils、proc-macro-error、unic-* 等）、2 unsound（glib 0.18 / rand 0.7，均为 tauri 构建链传递依赖，非运行时业务代码）；audit-check 只对 vulnerabilities 失败，warning 记录跟进。
