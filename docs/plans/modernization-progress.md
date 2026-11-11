@@ -15,6 +15,7 @@
 | Phase 3 仓库卫生（H-1..H-5） | ✅ 完成（H-1/H-2/H-3/H-4/H-5 全部落地） |
 | Phase 4 依赖与平台（D-1..D-4） | ✅ 完成（本地门禁全绿；macOS CI 构建通过；RustSec 5 项传递依赖漏洞已修复） |
 | Phase 5 桌面-only 收敛（v0.3） | ✅ 已完成（reviewer 终审 + tester 独立验证 PASS，残余清理已提交） |
+| 发布 v1.2.0（P0） | 🚧 准备中（版本/CHANGELOG/本地打包已完成，待 tag 与 Release 验证） |
 
 评审：reviewer 最终只读验收 task-8 = **PASS**（0 阻断项）。
 
@@ -193,3 +194,9 @@
 - **终审残余清理（task-22）**：删除 `src-tauri/icons/android`（17 文件）与 `src-tauri/icons/ios`（18 文件）移动图标；`.github/PULL_REQUEST_TEMPLATE.md` 影响面移除 Android/iOS；`src-tauri/Cargo.toml` `crate-type` 由 `["staticlib", "cdylib", "rlib"]` 收敛为 `["rlib"]`；删除无入口语言菜单死代码。清理后全量门禁与桌面构建复跑通过。
 - reviewer task-23 对 `46cc35b` 只读复核 **PASS（0 阻断）**：独立复跑 npm/cargo 全门禁与桌面构建，确认 35 个移动图标、PR 模板、crate-type、language-menu 死代码及移动关键字均无残留。文档 P3（CHANGELOG/ADR 中已删语言菜单表述）已由 `4dd5d09` 修正。
 - **最终 CI**：CI run [42979262663](https://github.com/qingtin66/EyeMotion/actions/runs/42979262663)（HEAD `4dd5d09`）全部 success —— quality / bundle-macos / security（RustSec + npm audit）/ Security audit 全绿。
+
+## 发布 v1.2.0（P0）
+
+- 版本统一为 `1.2.0`（Cargo.toml / package.json / tauri.conf.json / 两个锁文件），CHANGELOG 定版 `[1.2.0] - 2026-11-11 "The Desktop-Only Update"`。
+- 发布前本地门禁全绿：check:version 1.2.0、typecheck/lint/format:check、npm test 21 passed、vite build、cargo fmt/clippy/test 54 passed；`npx tauri build --bundles nsis,msi` 产出 Windows 安装包。
+- 详细发布记录见 `docs/plans/release-v1.2.0.md`。

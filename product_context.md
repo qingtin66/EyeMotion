@@ -28,7 +28,7 @@ EyeMotion 是一款面向眼健康的高性能**动态视觉追踪训练**桌面
 
 ## 5. 版本与发布
 - 版本 SSOT：根 `Cargo.toml` 的 `workspace.package.version`，并由 `scripts/check-version.mjs` 强制校验 `package.json` / `src-tauri/tauri.conf.json` 三处一致。
-- 发布由 `v*` tag 触发 GitHub Actions；当前目标版本 1.1.2。
+- 发布由 `v*` tag 触发 GitHub Actions；当前目标版本 1.2.0。
 
 ## 6. 硬约束
 - 生产代码禁止 `unwrap()`/`expect()`；错误用 `Result` + `thiserror`/`log`。

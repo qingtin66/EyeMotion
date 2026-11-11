@@ -4,8 +4,14 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-11-11 "The Desktop-Only Update"
+
+> **Summary**：首个桌面-only 正式版本。移除 Android/iOS 构建链与移动端 UI，完成依赖与安全现代化，并通过三平台 CI 构建 Windows / macOS / Linux 安装包。
+
+### ⚠️ Breaking Changes
+- **平台范围收缩为桌面-only**：不再发布 Android/iOS 版本，仅支持 Windows / macOS / Linux；如仍需移动端请继续使用 `1.1.x`。
+
 ### Changed
-- **平台范围收敛为桌面-only**：按 2026-11-11 决策移除 Android/iOS，仅支持 Windows / macOS / Linux；release 矩阵保留三桌面平台。
 - **依赖现代化**：Rust 升级 `rand 0.9` / `thiserror 2`；前端升级 Vite 8 / Vitest 5 / jsdom 29，Node 24。
 - **安全收尾（Q-7）**：`withGlobalTauri=false`；CSP 移除 `script-src 'unsafe-inline'`；前端改用 `@tauri-apps/api/core` 的 `invoke`。
 
