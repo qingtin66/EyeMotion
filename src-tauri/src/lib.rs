@@ -4,6 +4,7 @@ mod state;
 use commands::*;
 use state::AppState;
 
+/// 启动 EyeMotion 的 Tauri 应用：注册插件、全局状态与命令，并进入事件循环。
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let result = tauri::Builder::default()

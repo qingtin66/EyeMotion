@@ -329,7 +329,7 @@ export class Renderer {
         this.drawBackground();
 
         if (!gameState) {
-            this.drawText('CONNECTING...', 1920 / 2, 1080 / 2, 24, '#FFFFFF');
+            this.drawText('CONNECTING...', 1920 / 2, 1080 / 2, 24, this.colorToCSS(this.theme.ui.subtitle_color));
             return;
         }
 
