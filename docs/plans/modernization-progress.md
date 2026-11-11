@@ -23,6 +23,7 @@
 - `e2aacb0` refactor(phase2): 架构 SSOT——主题单一来源、状态权威归后端、命令模块化、死代码清理
 - `6e43198` chore(phase4): 依赖与平台现代化——Rust/前端升级、macOS/Android CI、Q-7 安全收尾
 - `aa3b4b1` fix(security): 修复 RustSec 传递依赖漏洞与 CI security 权限
+- `9a77a4c` docs(plans): 记录 Phase 4 安全门禁修复与独立验证结果
 
 ## 门禁实测（本地全绿，reviewer 独立复跑一致）
 
@@ -166,3 +167,5 @@
   - Cargo.lock 精准升级：`bytes 1.11.1`、`time 0.3.47`（time-core 0.1.8 / time-macros 0.2.27）、`plist 1.10.3`（`quick-xml 0.42.0`）、`rust_decimal 1.43.0`（移除 `rkyv 0.7`、`bytecheck` 等）、`byte-unit 5.2.6`、`tokio 1.53.3`、`anyhow 1.0.103`（附带修复 RUSTSEC-2026-0190）。
   - 验证：`cargo fmt --check` clean、`cargo clippy --workspace --all-targets -- -D warnings` exit 0、`cargo test --workspace` 54 passed；本地 `cargo audit` exit 0，**0 vulnerabilities**（10 allowed warnings）。
 - **非阻断 warning 仍存在**：8 unmaintained（fxhash、pin-utils、proc-macro-error、unic-* 等）、2 unsound（glib 0.18 / rand 0.7，均为 tauri 构建链传递依赖，非运行时业务代码）；audit-check 只对 vulnerabilities 失败，warning 记录跟进。
+- **CI 复跑（2026-11-11 14:40）**：CI run [42973041682](https://github.com/qingtin66/EyeMotion/actions/runs/42973041682)（HEAD `9a77a4c`）全部 success —— security / quality / bundle-macos / Security audit 全绿；security job 日志 `No vulnerabilities were found`、`Found 8 unmaintained, 2 unsound`、npm audit `found 0 vulnerabilities`。
+- **复验结论**：reviewer task-15 终审 **PASS（0 阻断项）**；tester task-16 独立复验 **PASS（安全阻断已解除）**，本地全门禁绿 + CI 全绿。

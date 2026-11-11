@@ -101,4 +101,16 @@
   2. Cargo.lock 精准升级消除全部 5 项 RUSTSEC 漏洞：`bytes 1.11.1`、`time 0.3.47`、`plist 1.10.3`（`quick-xml 0.42.0`）、`rust_decimal 1.43.0`（移除 `rkyv 0.7`）、`byte-unit 5.2.6`、`tokio 1.53.3`、`anyhow 1.0.103`。
 - **本地复验**：`cargo fmt --all -- --check` exit 0；`cargo clippy --workspace --all-targets -- -D warnings` exit 0；`cargo test --workspace` 54 passed；`cargo audit` exit 0，**0 vulnerabilities**（10 allowed warnings：8 unmaintained + 2 unsound glib/rand0.7）。
 - **修复提交**：`aa3b4b1`（fix(security): 修复 RustSec 传递依赖漏洞与 CI security 权限）。
-- **待最终确认**：推送后由 GitHub Actions security job 复跑确认；若通过，本报告 §10/阻断项 1 即关闭。
+- **CI 复跑确认（2026-11-11 14:40）**：push main（HEAD `9a77a4c`）触发 CI run [42973041682](https://github.com/qingtin66/EyeMotion/actions/runs/42973041682)，**全部 success**：`security` ✅（RustSec audit：`cargo audit --json` 显示 `vulnerabilities.found=false,count=0`，8 unmaintained + 2 unsound warning，未标失败；npm audit 0 vulnerabilities）、`quality` ✅、`bundle-macos` ✅、Security audit ✅。**本报告 §10/阻断项 1 关闭。**
+
+## 独立复验（tester task-16，2026-11-11 14:44）
+
+结论：**PASS（安全阻断已解除）**，HEAD `9a77a4c`，工作区干净。实测证据：
+
+- `git show --stat aa3b4b1`：3 files +64/−209（`ci.yml`、`CHANGELOG.md`、`Cargo.lock`）；`9a77a4c`：2 files +119/−2（docs）。
+- `cargo audit`（0.23.0）：exit 0，1446 advisories / 476 deps，**0 vulnerabilities**，10 allowed warnings（8 unmaintained + glib/rand0.7 2 unsound）。
+- Rust：`cargo fmt --check` exit0；`cargo clippy --workspace --all-targets -- -D warnings` exit0；`cargo test --workspace` 54 passed / 0 failed。
+- 前端：`npm ci` exit0；check:version 1.1.2 / typecheck / lint / format:check 全 exit0；`npm test` 21 passed；`npm run build` exit0（vite 8）。
+- `ci.yml` security job `permissions` 三项齐备；CI run 42973041682 conclusion=success（security/quality/bundle-macos/Security audit 全 success）。
+- `npx tauri build --debug --no-bundle` exit0（8.40s），`target/debug/eyemotion.exe` 产出。
+- 非阻断：cargo#6313 pdb 同名警告、rust-toolchain 未精确 pin、10 条 allowed warning。
