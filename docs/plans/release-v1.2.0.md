@@ -42,14 +42,23 @@
 
 ## 4. GitHub Release
 
-- Tag：`v1.2.0`（待创建）
-- Release workflow：`.github/workflows/release.yml`，矩阵 `windows-latest / ubuntu-22.04 / macos-latest`
-- 预期产物：
-  - Windows：NSIS `-setup.exe`、MSI
-  - Linux：`.deb`、`.AppImage`
-  - macOS：`.app`、`.dmg`（当前 runner 为 arm64）
-- 发布说明：来自 `CHANGELOG.md` 1.2.0 段
-- 验证结果：待 tag 后补充
+- Release：<https://github.com/qingtin66/EyeMotion/releases/tag/v1.2.0>
+- Tag：`v1.2.0`（annotated，指向提交 `e36d167`；发布状态 draft=false / prerelease=false）
+- 发布时间：2026-11-11T08:04:49Z（北京时间 16:04:49）
+- Release workflow：`.github/workflows/release.yml`，run [42983867080](https://github.com/qingtin66/EyeMotion/actions/runs/42983867080)；矩阵 `windows-latest / ubuntu-22.04 / macos-latest` 三平台 job 全部 success（macOS 3m0s、Ubuntu 7m24s、Windows 8m53s）。
+- 发布说明：来自 `CHANGELOG.md` 1.2.0 段，包含 Summary、⚠️ Breaking Changes、Changed、Removed、Added、Fixed。
+
+| 发布资产 | 大小（bytes） |
+| --- | ---: |
+| `EyeMotion_1.2.0_x64-setup.exe`（Windows NSIS） | 1,652,131 |
+| `EyeMotion_1.2.0_x64_en-US.msi`（Windows MSI） | 2,342,912 |
+| `EyeMotion_1.2.0_amd64.deb`（Linux Debian/Ubuntu） | 2,254,642 |
+| `EyeMotion_1.2.0_amd64.AppImage`（Linux AppImage） | 79,976,952 |
+| `EyeMotion_1.2.0_aarch64.dmg`（macOS arm64） | 2,672,985 |
+| `EyeMotion_aarch64.app.tar.gz`（macOS app 包） | 2,330,421 |
+| `EyeMotion_1.2.0_SHA256SUMS.txt`（6 个发布物校验和） | 576 |
+
+- 发布后验证：Lead 已核对 Release 元数据与资产；tester task-26 独立复验 **PASS**，确认 7 个资产齐全、Windows NSIS/MSI 下载后 SHA256 与 `SHA256SUMS` 一致、安装包版本均为 1.2.0，且 run 42983867080 三平台 job 全 success。
 
 ## 5. 已知非阻断事项
 

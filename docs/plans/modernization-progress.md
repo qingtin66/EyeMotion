@@ -15,7 +15,7 @@
 | Phase 3 仓库卫生（H-1..H-5） | ✅ 完成（H-1/H-2/H-3/H-4/H-5 全部落地） |
 | Phase 4 依赖与平台（D-1..D-4） | ✅ 完成（本地门禁全绿；macOS CI 构建通过；RustSec 5 项传递依赖漏洞已修复） |
 | Phase 5 桌面-only 收敛（v0.3） | ✅ 已完成（reviewer 终审 + tester 独立验证 PASS，残余清理已提交） |
-| 发布 v1.2.0（P0） | 🚧 准备中（版本/CHANGELOG/本地打包已完成，待 tag 与 Release 验证） |
+| 发布 v1.2.0（P0） | ✅ 完成（GitHub Release v1.2.0 已发布，三平台资产齐全） |
 
 评审：reviewer 最终只读验收 task-8 = **PASS**（0 阻断项）。
 
@@ -199,4 +199,7 @@
 
 - 版本统一为 `1.2.0`（Cargo.toml / package.json / tauri.conf.json / 两个锁文件），CHANGELOG 定版 `[1.2.0] - 2026-11-11 "The Desktop-Only Update"`。
 - 发布前本地门禁全绿：check:version 1.2.0、typecheck/lint/format:check、npm test 21 passed、vite build、cargo fmt/clippy/test 54 passed；`npx tauri build --bundles nsis,msi` 产出 Windows 安装包。
+- **Tag 与 Release**：`v1.2.0` annotated tag 指向 `e36d167`，已推送并触发 release workflow [42983867080](https://github.com/qingtin66/EyeMotion/actions/runs/42983867080)，三平台 job 全部 success；Release 已发布：<https://github.com/qingtin66/EyeMotion/releases/tag/v1.2.0>。
+- **发布资产（7 个）**：Windows NSIS 1,652,131 B / MSI 2,342,912 B；Linux deb 2,254,642 B / AppImage 79,976,952 B；macOS aarch64 dmg 2,672,985 B / app.tar.gz 2,330,421 B；`EyeMotion_1.2.0_SHA256SUMS.txt` 576 B。
+- **独立验证**：tester task-26 **PASS**（Release 元数据、7 个资产、Windows 安装包 SHA256 与版本 1.2.0、三平台 CI 全 success、HEAD/tag 均为 `e36d167`）。
 - 详细发布记录见 `docs/plans/release-v1.2.0.md`。
