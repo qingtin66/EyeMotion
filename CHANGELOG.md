@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ## [1.2.0] - 2026-11-11 "The Desktop-Only Update"
 
-> **Summary**：首个桌面-only 正式版本。移除 Android/iOS 构建链与移动端 UI，完成依赖与安全现代化，并通过三平台 CI 构建 Windows / macOS / Linux 安装包。
+> **Summary**：首个桌面-only 正式版本。移除 Android/iOS 构建链与移动端 UI，完成依赖与安全现代化；本版本提供 Windows / macOS / Linux 三平台安装包（由 release CI 构建）。
 
 ### ⚠️ Breaking Changes
 - **平台范围收缩为桌面-only**：不再发布 Android/iOS 版本，仅支持 Windows / macOS / Linux；如仍需移动端请继续使用 `1.1.x`。

@@ -6,11 +6,11 @@
 
 ## 1. 版本与变更
 
-- 版本 SSOT：`1.2.0`
+- 版本 SSOT（`scripts/check-version.mjs` 自动校验三处）：`1.2.0`
   - `Cargo.toml`（workspace.package.version）
   - `package.json`
   - `src-tauri/tauri.conf.json`
-  - 锁文件：`Cargo.lock`、`package-lock.json`
+- 同步更新的锁文件：`Cargo.lock`、`package-lock.json`（当前与三处 SSOT 一致；`check-version` 暂不自动校验锁文件）
 - 发布说明来源：`CHANGELOG.md` 的 `## [1.2.0] - 2026-11-11` 段，由 `scripts/release-notes.mjs` 提取。
 - 核心变更：
   - **Breaking**：平台范围收缩为桌面-only，移除 Android/iOS。
