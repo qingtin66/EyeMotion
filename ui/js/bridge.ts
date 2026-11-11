@@ -54,10 +54,10 @@ export interface Theme {
     };
 }
 
-export type GameEvent = 
+export type GameEvent =
     | { type: 'BallBounced' }
-    | { type: 'StageChanged', from: number, to: number }
-    | { type: 'StageCompleted', stage: number }
+    | { type: 'StageChanged'; from: number; to: number }
+    | { type: 'StageCompleted'; stage: number }
     | { type: 'GameOver' };
 
 declare global {
@@ -65,8 +65,8 @@ declare global {
         __TAURI__: {
             core: {
                 invoke: (command: string, args?: any) => Promise<any>;
-            }
-        }
+            };
+        };
     }
 }
 

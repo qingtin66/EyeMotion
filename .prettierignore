@@ -1,0 +1,9 @@
+node_modules
+dist
+target
+src-tauri/target
+release
+.workbuddy
+package-lock.json
+Cargo.lock
+*.md

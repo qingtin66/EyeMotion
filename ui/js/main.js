@@ -4,12 +4,12 @@ console.log('=== EyeMotion Main Entry ===');
 
 function initGame() {
     console.log('Initializing game...');
-    
+
     if (window.game) {
         console.log('Game already initialized');
         return;
     }
-    
+
     window.game = new Game();
 }
 

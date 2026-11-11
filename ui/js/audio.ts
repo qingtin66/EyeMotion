@@ -15,11 +15,12 @@ export class AudioPlayer {
 
     init(): void {
         if (this.initialized) return;
-        
+
         try {
-            const AudioContextClass = (window.AudioContext || (window as any).webkitAudioContext) as typeof AudioContext;
+            const AudioContextClass = (window.AudioContext ||
+                (window as any).webkitAudioContext) as typeof AudioContext;
             if (!AudioContextClass) throw new Error('AudioContext not supported');
-            
+
             this.audioCtx = new AudioContextClass();
             this.bgmPlayer = new BGMPlayer(this.audioCtx);
             this.initialized = true;
@@ -57,7 +58,7 @@ export class AudioPlayer {
     playBounce(): void {
         if (!this.sfxEnabled || !this.audioCtx) return;
         this.resume();
-        
+
         try {
             const osc = this.audioCtx.createOscillator();
             const gain = this.audioCtx.createGain();
@@ -82,7 +83,7 @@ export class AudioPlayer {
     playClick(): void {
         if (!this.sfxEnabled || !this.audioCtx) return;
         this.resume();
-        
+
         try {
             const osc = this.audioCtx.createOscillator();
             const gain = this.audioCtx.createGain();
@@ -116,25 +117,25 @@ class BGMPlayer {
     private mainGain: GainNode;
     private loopTimeout: number | null = null;
     private chords = [
-        [130.81, 261.63, 329.63, 392.00], // Cmaj7
-        [146.83, 293.66, 349.23, 440.00], // Dm7
-        [164.81, 329.63, 392.00, 493.88], // Em7
-        [174.61, 349.23, 440.00, 523.25], // Fmaj7
-        [196.00, 392.00, 493.88, 587.33], // G7
-        [220.00, 440.00, 523.25, 659.25], // Am7
-        [174.61, 349.23, 440.00, 523.25], // Fmaj7
-        [196.00, 392.00, 493.88, 587.33], // G7
+        [130.81, 261.63, 329.63, 392.0], // Cmaj7
+        [146.83, 293.66, 349.23, 440.0], // Dm7
+        [164.81, 329.63, 392.0, 493.88], // Em7
+        [174.61, 349.23, 440.0, 523.25], // Fmaj7
+        [196.0, 392.0, 493.88, 587.33], // G7
+        [220.0, 440.0, 523.25, 659.25], // Am7
+        [174.61, 349.23, 440.0, 523.25], // Fmaj7
+        [196.0, 392.0, 493.88, 587.33] // G7
     ];
     private melody = [
         // 第一小节
         523.25, 0, 523.25, 587.33, 659.25, 0, 659.25, 587.33,
         // 第二小节
-        523.25, 0, 493.88, 0, 440.00, 0, 392.00, 0,
+        523.25, 0, 493.88, 0, 440.0, 0, 392.0, 0,
         // 第三小节
-        392.00, 0, 523.25, 0, 659.25, 0, 783.99, 0,
+        392.0, 0, 523.25, 0, 659.25, 0, 783.99, 0,
         // 第四小节
-        880.00, 783.99, 659.25, 523.25, 587.33, 0, 0, 0
-    ]; 
+        880.0, 783.99, 659.25, 523.25, 587.33, 0, 0, 0
+    ];
 
     constructor(audioCtx: AudioContext) {
         this.audioCtx = audioCtx;
@@ -160,7 +161,11 @@ class BGMPlayer {
     }
 
     toggle(enabled: boolean): void {
-        enabled ? this.start() : this.stop();
+        if (enabled) {
+            this.start();
+        } else {
+            this.stop();
+        }
     }
 
     updateVolume(): void {
@@ -175,14 +180,14 @@ class BGMPlayer {
     }
 
     private playLoop(): void {
-        let startTime = this.audioCtx.currentTime;
-        let beatDuration = 0.45; 
+        const startTime = this.audioCtx.currentTime;
+        const beatDuration = 0.45;
         let beat = 0;
 
         const nextTick = () => {
             if (!this.isPlaying) return;
             const now = this.audioCtx.currentTime;
-            
+
             const chordIdx = Math.floor(beat / 8) % this.chords.length;
             const currentChord = this.chords[chordIdx];
 
@@ -197,13 +202,22 @@ class BGMPlayer {
             // 贝斯 (Bass) - 增强低频
             if (beat % 2 === 0) {
                 this.createInstrumentNote(currentChord[0] * 0.5, 0.12, now, beatDuration * 1.0, 'triangle', {
-                    attack: 0.05, decay: 0.1, sustain: 0.5, release: 0.2, filterFreq: 250
+                    attack: 0.05,
+                    decay: 0.1,
+                    sustain: 0.5,
+                    release: 0.2,
+                    filterFreq: 250
                 });
             }
             // 大提琴 (Cello) - 极其连贯的长音
             if (beat % 8 === 0) {
                 this.createInstrumentNote(currentChord[0] * 0.5, 0.1, now, beatDuration * 8.5, 'sawtooth', {
-                    attack: 1.5, decay: 0.5, sustain: 0.8, release: 2.0, vibrato: true, filterFreq: 400
+                    attack: 1.5,
+                    decay: 0.5,
+                    sustain: 0.8,
+                    release: 2.0,
+                    vibrato: true,
+                    filterFreq: 400
                 });
             }
 
@@ -211,7 +225,11 @@ class BGMPlayer {
             // 电吉他 (Electric Guitar) - 移至中低声部，增加厚度
             const guitarFreq = currentChord[beat % 4]; // 降低一个八度
             this.createInstrumentNote(guitarFreq, 0.04, now, beatDuration * 2.0, 'square', {
-                attack: 0.1, decay: 0.5, sustain: 0.4, release: 1.0, filterFreq: 800
+                attack: 0.1,
+                decay: 0.5,
+                sustain: 0.4,
+                release: 1.0,
+                filterFreq: 800
             });
 
             // 4. 主奏声部 (Main Section)
@@ -220,7 +238,11 @@ class BGMPlayer {
             const pianoFreq = this.melody[melIdx];
             if (pianoFreq > 0) {
                 this.createInstrumentNote(pianoFreq, 0.12, now, beatDuration * 1.5, 'triangle', {
-                    attack: 0.01, decay: 0.3, sustain: 0.4, release: 0.8, filterFreq: 2500
+                    attack: 0.01,
+                    decay: 0.3,
+                    sustain: 0.4,
+                    release: 0.8,
+                    filterFreq: 2500
                 });
             }
 
@@ -230,14 +252,24 @@ class BGMPlayer {
             if (beat % 4 === 0) {
                 const v1Freq = currentChord[2] * 2;
                 this.createInstrumentNote(v1Freq, 0.08, now, beatDuration * 6.0, 'triangle', {
-                    attack: 0.2, decay: 0.3, sustain: 0.7, release: 2.0, vibrato: false, filterFreq: 3000 // 高截止频率，保持清澈
+                    attack: 0.2,
+                    decay: 0.3,
+                    sustain: 0.7,
+                    release: 2.0,
+                    vibrato: false,
+                    filterFreq: 3000 // 高截止频率，保持清澈
                 });
             }
             // 旋律线 B - 柔和方波 (Soft Square)
             if ((beat + 2) % 8 === 0) {
                 const v2Freq = currentChord[1] * 2;
                 this.createInstrumentNote(v2Freq, 0.05, now, beatDuration * 7.0, 'square', {
-                    attack: 0.3, decay: 0.4, sustain: 0.6, release: 2.5, vibrato: false, filterFreq: 1500 // 过滤掉高频，使其圆润
+                    attack: 0.3,
+                    decay: 0.4,
+                    sustain: 0.6,
+                    release: 2.5,
+                    vibrato: false,
+                    filterFreq: 1500 // 过滤掉高频，使其圆润
                 });
             }
 
@@ -291,18 +323,18 @@ class BGMPlayer {
 
     // 通用乐器音色合成方法
     private createInstrumentNote(
-        freq: number, 
-        gainVal: number, 
-        time: number, 
-        duration: number, 
+        freq: number,
+        gainVal: number,
+        time: number,
+        duration: number,
         type: OscillatorType,
-        params: { 
-            attack: number, 
-            decay: number, 
-            sustain: number, 
-            release: number, 
-            vibrato?: boolean,
-            filterFreq: number
+        params: {
+            attack: number;
+            decay: number;
+            sustain: number;
+            release: number;
+            vibrato?: boolean;
+            filterFreq: number;
         }
     ): void {
         const osc = this.audioCtx.createOscillator();

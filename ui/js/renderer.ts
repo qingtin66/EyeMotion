@@ -4,7 +4,7 @@ export class Renderer {
     private canvas: HTMLCanvasElement;
     private ctx: CanvasRenderingContext2D;
     private theme: Theme;
-    private buttons: Map<string, { x: number, y: number, w: number, h: number, callback: () => void }> = new Map();
+    private buttons: Map<string, { x: number; y: number; w: number; h: number; callback: () => void }> = new Map();
     private buttonHoverFactors: Map<string, number> = new Map();
     private logicalWidth: number = 1920;
     private logicalHeight: number = 1080;
@@ -15,11 +15,11 @@ export class Renderer {
         if (!canvas) throw new Error(`Canvas with id ${canvasId} not found`);
         this.canvas = canvas;
         // 尝试开启 alpha 以获取更好的文字子像素抗锯齿效果
-        this.ctx = this.canvas.getContext('2d', { 
+        this.ctx = this.canvas.getContext('2d', {
             alpha: true,
             desynchronized: true
         })!;
-        
+
         // 强制开启抗锯齿
         this.ctx.imageSmoothingEnabled = true;
         this.ctx.imageSmoothingQuality = 'high';
@@ -92,8 +92,8 @@ export class Renderer {
 
     private t(key: string): string {
         const translations: Record<string, string> = {
-            'stage': 'STAGE',
-            'time': 'TIME'
+            stage: 'STAGE',
+            time: 'TIME'
         };
         return translations[key] || key.toUpperCase();
     }
@@ -112,15 +112,15 @@ export class Renderer {
     }
 
     // 将设计稿坐标转换为实际屏幕坐标
-    private scalePos(x: number, y: number): { x: number, y: number } {
+    private scalePos(x: number, y: number): { x: number; y: number } {
         const scale = this.getScale();
         const w = window.innerWidth;
         const h = window.innerHeight;
-        
+
         // 计算逻辑区域在实际屏幕上的偏移，使其完全居中
         const offsetX = (w - this.logicalWidth * scale) / 2;
         const offsetY = (h - this.logicalHeight * scale) / 2;
-        
+
         return {
             x: x * scale + offsetX,
             y: y * scale + offsetY
@@ -132,14 +132,23 @@ export class Renderer {
         return size * this.getScale();
     }
 
-    private drawText(text: string, x: number, y: number, size: number, color: string | CanvasGradient, align: CanvasTextAlign = 'center', fontStack: string = "'AlumniSans', system-ui, sans-serif", opacity: number = 1): void {
+    private drawText(
+        text: string,
+        x: number,
+        y: number,
+        size: number,
+        color: string | CanvasGradient,
+        align: CanvasTextAlign = 'center',
+        fontStack: string = "'AlumniSans', system-ui, sans-serif",
+        opacity: number = 1
+    ): void {
         const pos = this.scalePos(x, y);
         // 移动端字体放大 1.3 倍
         const mobileScale = this.isMobile ? 1.3 : 1.0;
-        const finalSize = Math.round(this.scaleSize(size) * mobileScale); 
+        const finalSize = Math.round(this.scaleSize(size) * mobileScale);
         this.ctx.save();
         this.ctx.globalAlpha = opacity;
-        
+
         // 增加绘制提示
         this.ctx.imageSmoothingEnabled = true;
         this.ctx.imageSmoothingQuality = 'high';
@@ -147,44 +156,61 @@ export class Renderer {
         this.ctx.font = `${finalSize}px ${fontStack}`;
         this.ctx.fillStyle = color;
         this.ctx.textAlign = align;
-        this.ctx.textBaseline = 'middle'; 
-        
+        this.ctx.textBaseline = 'middle';
+
         if (/\d/.test(text) && align === 'center') {
             this.ctx.font = `tabular-nums ${finalSize}px ${fontStack}`;
         }
-        
+
         // 使用微小的偏移或四舍五入来对齐像素，减少边缘模糊
         const drawX = Math.floor(pos.x) + 0.5;
         const drawY = Math.floor(pos.y) + 0.5;
-        
+
         // 回归简洁渲染，移除多层叠加算法
         this.ctx.fillText(text, drawX, drawY);
 
         this.ctx.restore();
     }
 
-    private drawButton(id: string, text: string, x: number, y: number, fontSize: number, paddingX: number, paddingY: number, gradientColors: string[], callback: () => void, mousePos?: { x: number, y: number }, isMouseDown?: boolean): void {
+    private drawButton(
+        id: string,
+        text: string,
+        x: number,
+        y: number,
+        fontSize: number,
+        paddingX: number,
+        paddingY: number,
+        gradientColors: string[],
+        callback: () => void,
+        mousePos?: { x: number; y: number },
+        isMouseDown?: boolean
+    ): void {
         const mobileScale = this.isMobile ? 1.3 : 1.0;
         const finalFontSize = this.scaleSize(fontSize) * mobileScale;
         const finalPaddingX = this.scaleSize(paddingX) * mobileScale;
         const finalPaddingY = this.scaleSize(paddingY) * mobileScale;
-        
+
         this.ctx.font = `${finalFontSize}px 'AlumniSans'`;
         const textMetrics = this.ctx.measureText(text);
         const textWidth = textMetrics.width;
-        
+
         const btnW = Math.round(textWidth + finalPaddingX * 2);
-        const btnH = Math.round((finalFontSize * 0.7) + finalPaddingY * 2); 
-        
+        const btnH = Math.round(finalFontSize * 0.7 + finalPaddingY * 2);
+
         const pos = this.scalePos(x, y);
         const btnX = Math.round(pos.x - btnW / 2);
         const btnY = Math.round(pos.y - btnH / 2);
-        
+
         // 记录按钮区域用于点击检测
         this.buttons.set(id, { x: btnX, y: btnY, w: btnW, h: btnH, callback });
-        
+
         // 状态检测
-        const isHover = mousePos && mousePos.x >= btnX && mousePos.x <= btnX + btnW && mousePos.y >= btnY && mousePos.y <= btnY + btnH;
+        const isHover =
+            mousePos &&
+            mousePos.x >= btnX &&
+            mousePos.x <= btnX + btnW &&
+            mousePos.y >= btnY &&
+            mousePos.y <= btnY + btnH;
         const isClick = isHover && isMouseDown;
 
         // 动画逻辑：平滑更新 hoverFactor
@@ -196,7 +222,7 @@ export class Renderer {
         this.buttonHoverFactors.set(id, factor);
 
         this.ctx.save();
-        
+
         // 应用动画缩放 (基于 factor)
         if (isClick) {
             this.ctx.translate(pos.x, pos.y);
@@ -204,7 +230,7 @@ export class Renderer {
             this.ctx.translate(-pos.x, -pos.y);
         } else if (factor > 0) {
             this.ctx.translate(pos.x, pos.y);
-            const scale = 1 + (0.05 * factor); // 0 -> 1 对应 1.0 -> 1.05
+            const scale = 1 + 0.05 * factor; // 0 -> 1 对应 1.0 -> 1.05
             this.ctx.scale(scale, scale);
             this.ctx.translate(-pos.x, -pos.y);
         }
@@ -224,10 +250,10 @@ export class Renderer {
             gradient.addColorStop(0, gradientColors[0]);
             gradient.addColorStop(1, gradientColors[1]);
         }
-        
+
         const radius = this.scaleSize(48);
         this.ctx.fillStyle = gradient;
-        
+
         // 1. 填充主体
         this.drawSquircle(btnX, btnY, btnW, btnH, radius);
         this.ctx.fill();
@@ -255,12 +281,12 @@ export class Renderer {
         this.drawSquircle(btnX, btnY, btnW, btnH, radius);
         this.ctx.stroke();
         this.ctx.restore();
-        
+
         // 绘制文字：确保文字本身没有阴影效果
         this.ctx.shadowBlur = 0;
         this.ctx.shadowColor = 'transparent';
         this.ctx.shadowOffsetY = 0;
-        
+
         this.ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
         this.ctx.textAlign = 'center';
         this.ctx.textBaseline = 'middle';
@@ -297,15 +323,20 @@ export class Renderer {
         return false;
     }
 
-    render(gameState: GameState | null, mousePos?: { x: number, y: number }, isMouseDown?: boolean, showCursor: boolean = true): void {
+    render(
+        gameState: GameState | null,
+        mousePos?: { x: number; y: number },
+        isMouseDown?: boolean,
+        showCursor: boolean = true
+    ): void {
         this.ctx.imageSmoothingEnabled = true;
         this.ctx.imageSmoothingQuality = 'high';
-        
+
         this.buttons.clear();
         this.drawBackground();
 
         if (!gameState) {
-            this.drawText("CONNECTING...", 1920 / 2, 1080 / 2, 24, "#FFFFFF");
+            this.drawText('CONNECTING...', 1920 / 2, 1080 / 2, 24, '#FFFFFF');
             return;
         }
 
@@ -320,11 +351,11 @@ export class Renderer {
                 const ballRadius = this.scaleSize(gameState.ball.radius);
                 this.drawBallAt(ballPos.x, ballPos.y, ballRadius);
             }
-            
+
             if (gameState.stage === 5 && gameState.stage5_paused) {
                 this.drawStage5Pause();
             }
-            
+
             this.drawUI(gameState, mousePos, isMouseDown);
         }
 
@@ -332,14 +363,18 @@ export class Renderer {
         let hoveringAny = false;
         if (mousePos) {
             for (const btn of this.buttons.values()) {
-                if (mousePos.x >= btn.x && mousePos.x <= btn.x + btn.w && 
-                    mousePos.y >= btn.y && mousePos.y <= btn.y + btn.h) {
+                if (
+                    mousePos.x >= btn.x &&
+                    mousePos.x <= btn.x + btn.w &&
+                    mousePos.y >= btn.y &&
+                    mousePos.y <= btn.y + btn.h
+                ) {
                     hoveringAny = true;
                     break;
                 }
             }
         }
-        
+
         if (!showCursor) {
             this.canvas.style.cursor = 'none';
         } else {
@@ -351,24 +386,24 @@ export class Renderer {
         const w = window.innerWidth;
         const h = window.innerHeight;
         const scale = this.getScale();
-        
+
         // 强制背景网格为正方形，不随屏幕拉伸变形
         const gridSize = 80 * scale;
-        
+
         const color1 = this.colorToCSS(this.theme.background.grid_color_dark);
         const color2 = this.colorToCSS(this.theme.background.grid_color_light);
-        
+
         // 计算偏移量以使网格在屏幕中心对称
         const offsetX = (w % gridSize) / 2;
         const offsetY = (h % gridSize) / 2;
-        
+
         for (let x = -gridSize; x < w + gridSize; x += gridSize) {
             for (let y = -gridSize; y < h + gridSize; y += gridSize) {
                 // 使用固定的逻辑坐标计算颜色，确保网格大小一致且位置稳定
                 const gridX = Math.round((x - offsetX) / gridSize);
                 const gridY = Math.round((y - offsetY) / gridSize);
                 const isEven = (gridX + gridY) % 2 === 0;
-                
+
                 this.ctx.fillStyle = isEven ? color1 : color2;
                 // 使用 Math.floor 和 +1 这种方式，或者 Math.round，避免亚像素缝隙导致的锯齿感
                 const drawX = Math.floor(x);
@@ -384,29 +419,29 @@ export class Renderer {
         const gradient = this.ctx.createLinearGradient(x - radius, y - radius, x + radius, y + radius);
         gradient.addColorStop(0, this.colorToCSS(this.theme.ball.gradient_start));
         gradient.addColorStop(1, this.colorToCSS(this.theme.ball.gradient_end));
-        
+
         this.ctx.beginPath();
         this.ctx.arc(x, y, radius, 0, Math.PI * 2);
         this.ctx.fillStyle = gradient;
         this.ctx.fill();
-        
+
         this.ctx.strokeStyle = this.colorToCSS(this.theme.ball.outline_color);
         this.ctx.lineWidth = 2;
         this.ctx.stroke();
         this.ctx.restore();
     }
 
-    private drawStartScreen(mousePos?: { x: number, y: number }, isMouseDown?: boolean): void {
-        this.drawText('EYE MOTION', this.logicalWidth / 2, 400, 200, '#EBBF42'); 
-        
+    private drawStartScreen(mousePos?: { x: number; y: number }, isMouseDown?: boolean): void {
+        this.drawText('EYE MOTION', this.logicalWidth / 2, 400, 200, '#EBBF42');
+
         this.drawButton(
-            'start-btn', 
-            'START', 
-            this.logicalWidth / 2, 
-            560, 
-            64,  
-            35,  
-            16,  // 上下填充增加到 16px
+            'start-btn',
+            'START',
+            this.logicalWidth / 2,
+            560,
+            64,
+            35,
+            16, // 上下填充增加到 16px
             ['#FC6170', '#E62538'],
             () => (window as any).game.startGame(),
             mousePos,
@@ -414,25 +449,25 @@ export class Renderer {
         );
     }
 
-    private drawGameOver(mousePos?: { x: number, y: number }, isMouseDown?: boolean): void {
+    private drawGameOver(mousePos?: { x: number; y: number }, isMouseDown?: boolean): void {
         const centerX = this.logicalWidth / 2;
         const centerY = this.logicalHeight / 2;
-        
+
         // "GAME OVER" 字号翻倍：120 -> 240，位置微调
-        this.drawText("GAME OVER", centerX, centerY - 250, 240, "#FC6170");
-        
+        this.drawText('GAME OVER', centerX, centerY - 250, 240, '#FC6170');
+
         if (this.isMobile) {
             // Mobile: Horizontal Layout (横排)
             // RESTART | QUIT
             const btnGap = 200; // Gap between button centers
-            
+
             this.drawButton(
-                'restart-btn', 
-                'RESTART', 
-                centerX - btnGap / 2, 
-                centerY + 200, 
-                64, 
-                35, 
+                'restart-btn',
+                'RESTART',
+                centerX - btnGap / 2,
+                centerY + 200,
+                64,
+                35,
                 16,
                 ['#EBBF42', '#E68325'],
                 () => (window as any).game.restartGame(),
@@ -441,12 +476,12 @@ export class Renderer {
             );
 
             this.drawButton(
-                'quit-btn', 
-                'QUIT', 
-                centerX + btnGap / 2, 
-                centerY + 200, 
-                64, 
-                35, 
+                'quit-btn',
+                'QUIT',
+                centerX + btnGap / 2,
+                centerY + 200,
+                64,
+                35,
                 16,
                 ['#41C6F0', '#108FDF'],
                 () => (window as any).game.quitGame(),
@@ -457,15 +492,15 @@ export class Renderer {
             // Desktop: Vertical Layout (竖排)
             // RESTART
             // QUIT
-            
+
             // RESTART 按钮，位置下移：150 -> 200
             this.drawButton(
-                'restart-btn', 
-                'RESTART', 
-                centerX, 
-                centerY + 200, 
-                64, 
-                35, 
+                'restart-btn',
+                'RESTART',
+                centerX,
+                centerY + 200,
+                64,
+                35,
                 16,
                 ['#EBBF42', '#E68325'],
                 () => (window as any).game.restartGame(),
@@ -475,12 +510,12 @@ export class Renderer {
 
             // QUIT 按钮，距离增加到 140px (Game Over buttons too close)
             this.drawButton(
-                'quit-btn', 
-                'QUIT', 
-                centerX, 
-                centerY + 200 + 140, 
-                64, 
-                35, 
+                'quit-btn',
+                'QUIT',
+                centerX,
+                centerY + 200 + 140,
+                64,
+                35,
                 16,
                 ['#41C6F0', '#108FDF'],
                 () => (window as any).game.quitGame(),
@@ -490,9 +525,9 @@ export class Renderer {
         }
     }
 
-    private drawUI(state: GameState, mousePos?: { x: number, y: number }, isMouseDown?: boolean): void {
+    private drawUI(state: GameState, mousePos?: { x: number; y: number }, isMouseDown?: boolean): void {
         this.drawStats(state);
-        
+
         // Pause Button (Top Center) - Only draw when playing and not transitioning
         // 仅在移动端显示暂停按钮 (Mobile Only)
         if (this.isMobile && !state.paused && !state.is_transitioning && !state.is_game_over) {
@@ -511,14 +546,14 @@ export class Renderer {
                 isMouseDown
             );
         }
-        
+
         if (state.paused) {
             this.ctx.fillStyle = 'rgba(0, 0, 0, 0.7)'; // Darker background
             this.ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
-            
+
             // 暂停提示移至画面上方 1/4 处
             this.drawText('PAUSED', this.logicalWidth / 2, this.logicalHeight * 0.25, 100, '#EBBF42');
-            
+
             const centerX = this.logicalWidth / 2;
             const centerY = this.logicalHeight / 2;
 
@@ -526,7 +561,7 @@ export class Renderer {
                 // Mobile: Horizontal Layout (横排)
                 // RESUME | RESTART | QUIT
                 const btnGap = 200;
-                
+
                 // RESUME (Left)
                 this.drawButton(
                     'pause-resume-btn',
@@ -571,7 +606,6 @@ export class Renderer {
                     mousePos,
                     isMouseDown
                 );
-
             } else {
                 // Desktop: Vertical Layout (竖排)
                 const btnGap = 120; // Increased from 100 to 120 for better spacing
@@ -621,7 +655,7 @@ export class Renderer {
                     isMouseDown
                 );
             }
-            
+
             // Remove full screen resume area to avoid conflict with buttons
             // Users should click "RESUME" button explicitly, which is clearer
         }
@@ -633,17 +667,14 @@ export class Renderer {
             const pos = this.scalePos(this.logicalWidth / 2, 520);
             const size = 140;
             const finalSize = Math.round(this.scaleSize(size));
-            
+
             // 创建线性渐变：从上到下 (#41C6F0 -> #108FDF)
-            const gradient = this.ctx.createLinearGradient(
-                pos.x, pos.y - finalSize / 2, 
-                pos.x, pos.y + finalSize / 2
-            );
+            const gradient = this.ctx.createLinearGradient(pos.x, pos.y - finalSize / 2, pos.x, pos.y + finalSize / 2);
             gradient.addColorStop(0, '#41C6F0');
             gradient.addColorStop(1, '#108FDF');
-            
+
             this.drawText(stageText, this.logicalWidth / 2, 520, size, gradient);
-            
+
             // Stage 倒计时数字保持原有黄色
             this.drawText(`${count}`, this.logicalWidth / 2, 700, 160, '#EBBF42');
         }
@@ -656,25 +687,11 @@ export class Renderer {
         const size = 28;
 
         // Stage (Top Left)
-        this.drawText(
-            `${this.t('stage')} ${state.stage}`, 
-            padding, 
-            topMargin,
-            size,
-            color,
-            'left'
-        );
+        this.drawText(`${this.t('stage')} ${state.stage}`, padding, topMargin, size, color, 'left');
 
         // Time (Top Right)
         const timeStr = this.formatTime(state.stage_elapsed);
-        this.drawText(
-            `${this.t('time')}: ${timeStr}`, 
-            this.logicalWidth - padding, 
-            topMargin,
-            size,
-            color,
-            'right'
-        );
+        this.drawText(`${this.t('time')}: ${timeStr}`, this.logicalWidth - padding, topMargin, size, color, 'right');
     }
 
     private drawStage5Pause(): void {

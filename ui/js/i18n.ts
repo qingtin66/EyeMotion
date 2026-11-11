@@ -3,7 +3,6 @@ import { Bridge } from './bridge';
 export class I18n {
     private currentLocale: string;
     private translations: any = {};
-    private ready: boolean = false;
 
     constructor() {
         this.currentLocale = this.detectLocale();
@@ -26,11 +25,10 @@ export class I18n {
     private loadTranslations(locale: string): void {
         const url = `./locales/${locale}.json`;
         fetch(url)
-            .then(response => response.json())
-            .then(data => {
+            .then((response) => response.json())
+            .then((data) => {
                 this.translations = data;
                 this.currentLocale = locale;
-                this.ready = true;
                 document.dispatchEvent(new CustomEvent('i18n-ready', { detail: { locale } }));
                 document.dispatchEvent(new CustomEvent('locale-changed', { detail: { locale } }));
             })
@@ -38,7 +36,6 @@ export class I18n {
                 if (locale !== 'en') this.loadTranslations('en');
                 else {
                     this.translations = {};
-                    this.ready = true;
                 }
             });
     }
@@ -46,12 +43,12 @@ export class I18n {
     public t(key: string, params: { [key: string]: any } = {}): string {
         const keys = key.split('.');
         let value = this.translations;
-        
+
         for (const k of keys) {
             if (value && typeof value === 'object') value = value[k];
             else return key;
         }
-        
+
         if (typeof value === 'string') {
             return value.replace(/\{(\w+)\}/g, (_, param) => params[param] || '');
         }

@@ -21,28 +21,36 @@ export class InputHandler {
         });
 
         // Touch handling
-        let touchStartPos: { x: number, y: number } | null = null;
+        let touchStartPos: { x: number; y: number } | null = null;
         let touchStartTime: number = 0;
 
-        window.addEventListener('touchstart', (e) => {
-            if (e.touches.length > 0) {
-                const touch = e.touches[0];
-                touchStartPos = { x: touch.clientX, y: touch.clientY };
-                touchStartTime = Date.now();
-                this.emit('mousedown', { x: touch.clientX, y: touch.clientY });
-            }
-        }, { passive: false });
+        window.addEventListener(
+            'touchstart',
+            (e) => {
+                if (e.touches.length > 0) {
+                    const touch = e.touches[0];
+                    touchStartPos = { x: touch.clientX, y: touch.clientY };
+                    touchStartTime = Date.now();
+                    this.emit('mousedown', { x: touch.clientX, y: touch.clientY });
+                }
+            },
+            { passive: false }
+        );
 
-        window.addEventListener('touchmove', (e) => {
-            if (e.touches.length > 0) {
-                const touch = e.touches[0];
-                this.emit('mousemove', { x: touch.clientX, y: touch.clientY });
-            }
-        }, { passive: false });
+        window.addEventListener(
+            'touchmove',
+            (e) => {
+                if (e.touches.length > 0) {
+                    const touch = e.touches[0];
+                    this.emit('mousemove', { x: touch.clientX, y: touch.clientY });
+                }
+            },
+            { passive: false }
+        );
 
         window.addEventListener('touchend', (e) => {
             this.emit('mouseup');
-            
+
             if (touchStartPos) {
                 const touch = e.changedTouches[0];
                 const dx = touch.clientX - touchStartPos.x;
@@ -56,7 +64,7 @@ export class InputHandler {
                     if (e.cancelable) e.preventDefault();
                     this.emit('click', { x: touch.clientX, y: touch.clientY });
                 }
-                
+
                 touchStartPos = null;
             }
         });
@@ -101,6 +109,6 @@ export class InputHandler {
     }
 
     private emit(event: string, data?: any): void {
-        this.listeners.get(event)?.forEach(cb => cb(data));
+        this.listeners.get(event)?.forEach((cb) => cb(data));
     }
 }
