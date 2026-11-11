@@ -61,10 +61,6 @@ if (-not $env:ANDROID_HOME) { throw "ANDROID_HOME is not set" }
 Write-Host "   Using JAVA_HOME: $env:JAVA_HOME" -ForegroundColor Gray
 Write-Host "   Using ANDROID_HOME: $env:ANDROID_HOME" -ForegroundColor Gray
 
-# Force Patch tauri.conf.json
-Write-Host "   🔧 Patching tauri.conf.json to FORCE remove devUrl..." -ForegroundColor Cyan
-node "$projectRoot\patch_config.js"
-
 try {
     # Use Standard Tauri CLI for Android Build (but tolerate symlink errors)
     Write-Host "   🚀 Running Tauri Android Build (APK)..." -ForegroundColor Cyan
@@ -140,9 +136,6 @@ try {
     }
 
 } finally {
-    # Restore tauri.conf.json
-    Write-Host "   🔄 Restoring tauri.conf.json..." -ForegroundColor Cyan
-    node "$projectRoot\restore_config.js"
     # Ensure we are back at root
     Set-Location $projectRoot
 }

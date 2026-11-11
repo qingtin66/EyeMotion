@@ -45,6 +45,13 @@ yarn-error.log*
 Thumbs.db
 desktop.ini
 
+# Release artifacts（不提交二进制包）与重复的锁文件
+release/*.zip
+release/*.exe
+release/*.msi
+release/*.apk
+src-tauri/Cargo.lock
+
 # Rust specific
 Cargo.lock.backup
 **/*.rs.bk

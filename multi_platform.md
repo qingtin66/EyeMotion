@@ -82,3 +82,14 @@
     git tag -f <version>
     git push origin <version> --force
     ```
+
+---
+
+## 🧰 现代化基线（Phase 0–2 之后）
+
+- **版本 SSOT**：根 `Cargo.toml` 的 `workspace.package.version` 为唯一来源；`scripts/check-version.mjs` 校验 `package.json`、`src-tauri/tauri.conf.json` 一致，CI 强制（`npm run check:version`）。
+- **工具链钉桩**：`rust-toolchain.toml`（stable + rustfmt + clippy）、`.nvmrc`/`.node-version`=20；CI 与本地一致。
+- **质量门禁（.github/workflows/ci.yml）**：quality job 跑 `npm ci` → check:version/typecheck/lint/format:check/test/build + `cargo fmt --check`/clippy `-D warnings`/test --workspace（ubuntu-22.04 + webkit2gtk，含 rust-cache 与 npm 缓存）；security job 跑 rustsec 审计 + `npm audit --omit=dev --audit-level=high`。
+- **依赖更新**：`.github/dependabot.yml` 每周检查 cargo / npm / actions。
+- **构建脚本**：已移除 `patch_config.js`/`restore_config.js`——Tauri v2 原生支持 `build.devUrl`，不再需要 patch/restore `tauri.conf.json`。
+- **Android 仍为现状**：上述 Android 坑点与 workaround 仅在未来恢复 Android 发布时参考。

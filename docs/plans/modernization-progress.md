@@ -9,9 +9,9 @@
 | --- | --- |
 | Phase 0 止血（P0-1..8） | ✅ 完成 |
 | Phase 1 质量门禁（Q-1..Q-8） | ✅ 完成（Q-7 withGlobalTauri=false 按计划后置为独立 PR；Q-8 Playwright 冒烟为可选项未做） |
-| Phase 2 架构 SSOT（A-1..A-6） | ⬜ 未开始 |
-| Phase 3 仓库卫生（H-1..H-5） | ⬜ 未开始 |
-| Phase 4 依赖与平台（D-1..D-4） | ⬜ 未开始 |
+| Phase 2 架构 SSOT（A-1..A-6） | ✅ 完成（提交 e2aacb0） |
+| Phase 3 仓库卫生（H-1..H-5） | ✅ 完成（H-1/H-2/H-3/H-4/H-5 全部落地） |
+| Phase 4 依赖与平台（D-1..D-4） | ⬜ 未开始（视情况） |
 
 评审：reviewer 最终只读验收 task-8 = **PASS**（0 阻断项）。
 
@@ -19,6 +19,8 @@
 
 - `536c85e` fix(p0): 止血——版本统一、错误处理、安全基线、命令校验、构建可复现
 - `5a181c8` chore(ci): Phase1 质量门禁基建——工具链钉桩、ESLint/Prettier、Vitest、CI 与依赖审计
+- `d7fefd2` docs(plans): 记录 Phase0+1 执行进度、门禁实测与豁免项
+- `e2aacb0` refactor(phase2): 架构 SSOT——主题单一来源、状态权威归后端、命令模块化、死代码清理
 
 ## 门禁实测（本地全绿，reviewer 独立复跑一致）
 
@@ -55,8 +57,24 @@
 5. **前端覆盖率口径**：当前仅统计 i18n/audio 纯逻辑（renderer/game/input/virtual-controls 依赖 Canvas/DOM 未纳入），后续补 Playwright 冒烟或 canvas mock。
 6. **其他增强**：eslint 可加 `--max-warnings=0`；release.yml 可加缓存；公共 API 中文 `///` 100% 属 Phase 2 (A-4)。
 
+## Phase 2 架构 SSOT（✅ 完成，e2aacb0）
+
+- **A-1 主题单一来源**：`visual_config.rs` 新增 `GradientStyle` 与三个按钮渐变；`Theme::default()` 品牌化（#0B1B7D/#153FA1、球体 #FC6170→#E62538、radius_ratio 0.05）；前端 `renderer.ts` 删除 `getDefaultTheme()`，全部颜色取自后端主题 / CSS `--brand-*` 变量。
+- **A-2 状态 SSOT**：前端 `game.ts` 不再直接写权威状态；新增后端命令 `start_game` 迁移逻辑与 `return_to_start_screen`；`quitGame`/restart/togglePause 仅调命令。
+- **A-4 命令模块化 + 中文文档**：`commands.rs` 拆为 `commands/{mod,game,window,config,theme}.rs`，全部 pub fn 中文 `///`。
+- **A-3/A-5 死代码清理**：删除 Rust 死配置 `audio_config.rs`、前端死入口 `ui/js/main.js`、死依赖 `tauri-plugin-window-state`；`UserConfig` 移除未消费的 `audio` 字段。
+- **A-6**：`lib.rs` invoke_handler 注册 `return_to_start_screen`。
+
+## Phase 3 仓库卫生（✅ 完成）
+
+- **H-1**：`git rm --cached` 并删除入库的 `release/EyeMotion_Portable_Green.zip` 与重复的 `src-tauri/Cargo.lock`；`.gitignore` 增加 `release/*.{zip,exe,msi,apk}` 与 `src-tauri/Cargo.lock`。
+- **H-2**：备份 10 个旧客户端点目录（.agent/.claude/.codex/.cursor/.gemini/.kiro/.roo/.shared/.trae/.windsurf，约 95 文件 ~1.1MB）到仓库外 `D:\Soft\eyemotion-legacy-backup\legacy-clients-2026-11-11.zip`（408,076 bytes）后删除；保留 .workbuddy（harness 使用）。
+- **H-3**：删除 `patch_config.js`/`restore_config.js`，并从 `build_all.ps1` 移除 patch/restore 步骤（Tauri v2 原生支持 `build.devUrl`）。
+- **H-4**：新增 `CONTRIBUTING.md`、`.github/PULL_REQUEST_TEMPLATE.md`、`.github/ISSUE_TEMPLATE/{bug_report,feature_request}.md + config.yml`、`product_context.md`、`todo.md`；修复 README 下载徽章错链为 `qingtin66/EyeMotion`；`multi_platform.md` 增补「现代化基线」小节。
+- **H-5**：`README_ZH.md` 版本信息对齐 SSOT 1.1.2 / 2026-03-01。
+
 ## 下一步
 
-1. 发布检查点：Phase 0+1 → 版本 1.1.3（CHANGELOG + tag）。
-2. Phase 2 架构 SSOT：主题单一来源（品牌色 #0B1B7D/#153FA1 反写 Rust）、状态 SSOT、音频收敛、commands 拆分 + 中文文档、死代码清理（cargo-udeps）、window-state 插件注册/移除。
-3. Phase 3 仓库卫生、Phase 4 依赖与平台。
+1. Phase 3 全量门禁复跑 + 提交（本阶段）。
+2. 可选发布检查点：版本 1.1.3（CHANGELOG + tag + push）。
+3. Phase 4（视情况）：vite/vitest 升级、macOS CI job、Android 规范化、cargo-llvm-cov 覆盖率门禁、Q-7 withGlobalTauri=false + CSP 收紧。

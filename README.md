@@ -4,7 +4,7 @@
 
 [简体中文说明](README_ZH.md)
 
-[![Download](https://img.shields.io/badge/Download-Windows_x64-blue?style=for-the-badge&logo=windows)](https://github.com/eyemotion/eyemotion/releases/latest)
+[![Download](https://img.shields.io/badge/Download-Windows_x64-blue?style=for-the-badge&logo=windows)](https://github.com/qingtin66/EyeMotion/releases/latest)
 [![License](https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge)](LICENSE)
 
 ---
