@@ -13,18 +13,12 @@ target/
 src-tauri/target/
 src-tauri/gen/schemas
 vcpkg/
-android_sdk/
-jdk-17/
-jdk17.zip
-downloads/
 
 # Compiled files
 *.exe
 *.pdb
 *.user
 *.app
-*.apk
-*.ipa
 *.dmg
 *.msi
 *.msix
@@ -45,16 +39,11 @@ yarn-error.log*
 Thumbs.db
 desktop.ini
 
-# Android 构建产物（由 dist 复制生成，不入库）
-src-tauri/gen/android/app/src/main/assets/
-# Android 签名密钥（本机/CI secrets，禁止入库）
-src-tauri/gen/*.jks
 
 # Release artifacts（不提交二进制包）与重复的锁文件
 release/*.zip
 release/*.exe
 release/*.msi
-release/*.apk
 src-tauri/Cargo.lock
 
 # Rust specific

@@ -20,9 +20,7 @@
     "check:version": "node scripts/check-version.mjs",
     "build:windows": "npm run build && tauri build --target x86_64-pc-windows-msvc",
     "build:macos": "npm run build && tauri build --target universal-apple-darwin",
-    "build:linux": "npm run build && tauri build --target x86_64-unknown-linux-gnu",
-    "build:android": "npm run build && tauri android build --apk --split-per-abi",
-    "build:ios": "npm run build && tauri ios build"
+    "build:linux": "npm run build && tauri build --target x86_64-unknown-linux-gnu"
   },
   "devDependencies": {
     "@eslint/js": "^9.13.0",

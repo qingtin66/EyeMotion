@@ -1,95 +1,55 @@
-# 🌍 EyeMotion 跨平台开发与 CI/CD 坑点记录 (Multi-platform Pitfalls)
+# 🌍 EyeMotion 跨平台开发与 CI/CD 坑点记录（桌面三平台）
 
-本文件记录了 EyeMotion 项目在不同平台开发、构建及 GitHub Actions CI/CD 流程中遇到的典型问题及其解决方案，供后续迭代参考。
-
----
-
-## 🤖 Android (Tauri v2)
-
-### 1. `tauri.settings.gradle` 缺失问题
-*   **现象**：GitHub Actions 报错 `Could not read script .../tauri.settings.gradle' as it does not exist.`
-*   **根源**：`tauri android init --ci` 在 CI 环境下经常无法正确生成该配置文件，导致 Gradle 无法定位 Tauri 的 Android 源码。
-*   **最佳实践 (精确动态生成法)**：
-    由于 `init` 的不稳定性，推荐在 `init` 之后使用 Python 脚本**精确查找** Cargo 注册表中的 `tauri` 和 `tauri-plugin-shell` 路径，并手动写回 `tauri.settings.gradle`。
-    ```python
-    # 核心正则匹配逻辑：确保只匹配 tauri-x.y.z 而不是 tauri-runtime-x.y.z
-    matches = glob.glob(os.path.join(registry_path, f"{name_pattern}-[0-9]*"))
-    exact = [m for m in matches if re.match(rf".*/{re.escape(name_pattern)}-\d+\.\d+", m)]
-    ```
-*   **解决方案总结**：
-    1.  **彻底清理**：`rm -rf src-tauri/gen/android`。
-    2.  **核心初始化**：`npx tauri android init --ci`。
-    3.  **拉取源码缓存**：`cargo fetch --manifest-path src-tauri/Cargo.toml`（确保注册表中有源码供脚本查找）。
-    4.  **精确补产配置文件**：运行上述正则匹配脚本。
-    5.  **强制校验**：检查文件是否存在后再进入构建。
-
-### 2. Gradle 构建任务不存在 (`Task not found`)
-*   **现象**：报错 `Task 'assembleUniversalRelease' not found`。
-*   **根源**：Tauri CLI v2 在运行 build 时，即使指定了单架构也会尝试寻找 `assembleUniversalRelease` 任务，而该任务只有在启用 `splits` 时才会存在。
-*   **最佳实践 (CI 动态补丁法)**：
-    由于 `npx tauri android init --ci` 在某些 CLI 版本中会覆盖整个 `build.gradle.kts`，最稳健的做法是在 init 之后利用 **Python 脚本** 动态注入 `splits` 配置。
-    ```python
-    import os
-    path = "src-tauri/gen/android/app/build.gradle.kts"
-    with open(path, "r") as f: content = f.read()
-    if "splits {" not in content:
-        content = content.replace("buildTypes {", "splits { abi { isEnable = true; reset(); include('arm64-v8a', 'armeabi-v7a', 'x86_64'); isUniversalApk = true } }\n    buildTypes {")
-        with open(path, "w") as f: f.write(content)
-    ```
-    可在构建前添加验证步骤：
-    ```bash
-    grep -q "isUniversalApk" src-tauri/gen/android/app/build.gradle.kts || exit 1
-    ```
-*   **注意事项**：确保包含 `arm64-v8a`, `armeabi-v7a` 和 `x86_64` 以满足绝大多数需求，并设置 `isUniversalApk = true` 以生成 Tauri CLI 搜寻的特定 Task。
-
-### 3. Tauri CLI 与 Rust Target 名称差异
-*   **坑点**：`npx tauri android build --target` 接受的是**短名称**（如 `aarch64`），而 `rustup target add` 接受的是**完整名称**（如 `aarch64-linux-android`）。
-*   **解决方案**：
-    *   在 CI 安装 Rust 时使用：`aarch64-linux-android`
-    *   在执行 `tauri android build` 时使用：`--target aarch64`
-    *   **可选短名称列表**：`aarch64`, `armv7`, `i686`, `x86_64`
-
-### 4. NDK 版本与环境变量
-*   **现象**：Rust 编译 Android 库失败，报错找不到 NDK 或版本不匹配。
-*   **最佳实践 (CI)**：
-    1.  **版本锁定**：推荐使用 **NDK r27** (`27.2.12479018`)。
-    2.  **环境变量注入**：必须显式将 `ANDROID_HOME` 和 `NDK_HOME` 写入 `$GITHUB_ENV`：
-        ```yaml
-        - name: Set Android environment variables
-          run: |
-            echo "ANDROID_HOME=$ANDROID_HOME" >> $GITHUB_ENV
-            NDK_PATH=$(ls -d $ANDROID_HOME/ndk/* | sort -V | tail -1)
-            echo "NDK_HOME=$NDK_PATH" >> $GITHUB_ENV
-        ```
-*   **根源**：GitHub Actions 的 ubuntu-latest 镜像预装的版本可能导致 Tauri 识别冲突，动态注入最新的 NDK 路径是最稳健的做法。
+本文件记录 EyeMotion 在 Windows / macOS / Linux 桌面开发、构建及 GitHub Actions 中遇到的典型问题与解决方案。项目为 **桌面-only**，移动端（Android/iOS）已按 2026-11-11 决策移除，不再维护移动构建。
 
 ---
 
 ## 🪟 Windows (NSIS/MSI)
 
-### 1. WebView2Loader.dll 缺失 (绿色版)
-*   **现象**：打包出的 .zip 绿色版由于缺少 `WebView2Loader.dll` 无法在某些精简版系统运行。
-*   **解决方案**：在 `build_all.ps1` 中显式从编译产物目录拷贝该 DLL 到便携包根目录。
+### 1. WebView2Loader.dll 缺失（绿色版）
+- **现象**：打包出的 .zip 绿色版由于缺少 `WebView2Loader.dll` 无法在某些精简版系统运行。
+- **解决方案**：在 `build_all.ps1` 中显式从编译产物目录拷贝该 DLL 到便携包根目录。
+
+### 2. WebView2 Runtime 依赖
+- Windows 10/11 通常自带 WebView2 Runtime；极简系统需提示用户安装，否则应用窗口空白。
+
+---
+
+## 🍎 macOS
+
+### 1. 架构与 universal 产物
+- 当前 release 使用 `--bundles app,dmg`，默认产出 arm64 包；Intel Mac 需后续增加 `universal-apple-darwin` 目标。
+- 未做签名/公证时，用户首次打开需在「系统设置 → 隐私与安全性」允许；正式发布应配置 Apple Developer 证书与 notarization。
+
+### 2. 系统最低版本
+- `src-tauri/tauri.conf.json` 的 `bundle.macOS.minimumSystemVersion` 为 10.15；新增系统 API 时需同步评估。
+
+---
+
+## 🐧 Linux
+
+### 1. WebKitGTK 系统依赖
+- Ubuntu 22.04 CI 需安装：`libwebkit2gtk-4.1-dev build-essential curl wget file libssl-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev`。
+- `--bundles deb,appimage` 产出 deb 与 AppImage；不同发行版 glibc 版本需实测。
+
+### 2. 文件系统与权限
+- 配置写入遵循 XDG：`~/.config/eyemotion`；禁止硬编码平台路径。
 
 ---
 
 ## 🚀 GitHub Actions 策略建议
 
-*   **版本控制 (SSOT)**：所有版本号变更必须同步修改 `package.json`, `src-tauri/tauri.conf.json`, 和根目录 `Cargo.toml`。
-*   **Tag 驱动发布**：GitHub 工作流应由 `v*` 格式的 tag 触发，确保发布版本与代码库通过 Git 强对齐。
-*   **强力清理 (Reset)**：如果构建多次失败导致 Tag 混乱，可以使用以下命令在本地重置并强推标签，保持远程状态纯净：
-    ```powershell
-    git tag -f <version>
-    git push origin <version> --force
-    ```
+- **版本控制 (SSOT)**：版本号变更必须同步 `package.json`、`src-tauri/tauri.conf.json`、根 `Cargo.toml`，由 `npm run check:version` 校验。
+- **Tag 驱动发布**：工作流由 `v*` tag 触发，确保发布版本与代码库通过 Git 强对齐。
+- **平台矩阵**：`windows-latest / ubuntu-22.04 / macos-latest`；release 通过 tauri-action 按平台传 `--bundles` 参数。
+- **缓存**：npm cache + Swatinem/rust-cache，缩短三平台构建时间。
 
 ---
 
-## 🧰 现代化基线（Phase 0–2 之后）
+## 🧰 现代化基线（Phase 0–4 之后）
 
-- **版本 SSOT**：根 `Cargo.toml` 的 `workspace.package.version` 为唯一来源；`scripts/check-version.mjs` 校验 `package.json`、`src-tauri/tauri.conf.json` 一致，CI 强制（`npm run check:version`）。
-- **工具链钉桩**：`rust-toolchain.toml`（stable + rustfmt + clippy）、`.nvmrc`/`.node-version`=20；CI 与本地一致。
-- **质量门禁（.github/workflows/ci.yml）**：quality job 跑 `npm ci` → check:version/typecheck/lint/format:check/test/build + `cargo fmt --check`/clippy `-D warnings`/test --workspace（ubuntu-22.04 + webkit2gtk，含 rust-cache 与 npm 缓存）；security job 跑 rustsec 审计 + `npm audit --omit=dev --audit-level=high`。
+- **版本 SSOT**：根 `Cargo.toml` 的 `workspace.package.version` 为唯一来源；`scripts/check-version.mjs` 校验三处一致。
+- **工具链钉桩**：`rust-toolchain.toml`（stable + rustfmt + clippy）、`.nvmrc`/`.node-version`=24；CI 与本地一致。
+- **质量门禁（.github/workflows/ci.yml）**：quality job 跑 `npm ci` → check:version/typecheck/lint/format:check/test/build + `cargo fmt --check`/clippy `-D warnings`/test --workspace；security job 跑 rustsec 审计 + `npm audit --omit=dev --audit-level=high`；另有 bundle-macos 构建 job。
 - **依赖更新**：`.github/dependabot.yml` 每周检查 cargo / npm / actions。
-- **构建脚本**：已移除 `patch_config.js`/`restore_config.js`——Tauri v2 原生支持 `build.devUrl`，不再需要 patch/restore `tauri.conf.json`。
-- **Android 仍为现状**：上述 Android 坑点与 workaround 仅在未来恢复 Android 发布时参考。
+- **构建脚本**：已移除 `patch_config.js`/`restore_config.js` 与 Android 构建段；`build_all.ps1` 仅负责 Windows 前端 + Tauri 打包 + 便携版收集。

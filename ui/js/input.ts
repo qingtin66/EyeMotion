@@ -58,7 +58,7 @@ export class InputHandler {
                 const distance = Math.sqrt(dx * dx + dy * dy);
                 const duration = Date.now() - touchStartTime;
 
-                // Relaxed threshold for mobile: 30px distance, 800ms duration
+                // 触摸屏点击容差：30px 距离、800ms 时长
                 if (distance < 30 && duration < 800) {
                     // Prevent default to avoid double-firing with mouse events
                     if (e.cancelable) e.preventDefault();

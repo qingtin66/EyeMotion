@@ -27,11 +27,9 @@ ui/
 | Windows | 16x16, 32x32, 48x48, 64x64, 128x128, 256x256 |
 | macOS | 128x128, 256x256, 512x512, 1024x1024 |
 | Linux | 16x16, 32x32, 48x48, 64x64, 128x128 |
-| Android | 48x48, 72x72, 96x96, 144x144, 192x192, 512x512 |
-| iOS | 60x60, 76x76, 120x120, 152x152, 167x167, 180x180 |
 
 ## Icons Directory Location
 
 **Full path**: `D:\Soft\eyemotion\ui\assets\icons\`
 
-Please place your icon files in the directory above. After adding files, I will generate the necessary Tauri icon configurations for all platforms.
+Please place your icon files in the directory above. After adding files, I will generate the necessary Tauri icon configurations for Windows / macOS / Linux.

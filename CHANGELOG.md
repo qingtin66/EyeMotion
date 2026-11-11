@@ -5,13 +5,17 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Changed
+- **平台范围收敛为桌面-only**：按 2026-11-11 决策移除 Android/iOS，仅支持 Windows / macOS / Linux；release 矩阵保留三桌面平台。
 - **依赖现代化**：Rust 升级 `rand 0.9` / `thiserror 2`；前端升级 Vite 8 / Vitest 5 / jsdom 29，Node 24。
-- **平台构建**：release 增加 macOS job；Android 改用官方 `tauri android build --apk --split-per-abi` 流程并断言 APK 产物。
 - **安全收尾（Q-7）**：`withGlobalTauri=false`；CSP 移除 `script-src 'unsafe-inline'`；前端改用 `@tauri-apps/api/core` 的 `invoke`。
-- **Android 签名**：移除 `build.gradle.kts` 硬编码密钥，改读 `keystore.properties`；停止跟踪 `release.jks`。
+
+### Removed
+- **Android/iOS 构建链**：删除 `release-android` job、`package.json` 的 `build:android`/`build:ios`、`src-tauri/gen/android`（40 个生成文件）、`MOBILE_ENV_SETUP.md`、`local_env.ps1` 与 `build_all.ps1` 的 Android 段。
+- **移动端 UI/代码**：移除 `VirtualControls`、移动端布局分支、`.mobile` 样式与 Rust `mobile_entry_point`/Android·iOS 条件编译；语言菜单保留为独立 `ui/js/language-menu.ts`。
 
 ### Added
 - `scripts/release-notes.mjs`：跨平台从 CHANGELOG 提取发布说明。
+- `docs/decisions/ADR-0001-desktop-only-platform.md`：桌面-only 平台范围决策记录。
 
 ### Fixed
 - **Rust 传递依赖安全修复**：`bytes 1.11.1`、`time 0.3.47`、`plist 1.10.3`（`quick-xml 0.42.0`）、`rust_decimal 1.43.0`（移除 `rkyv 0.7`）、`tokio 1.53.3`、`anyhow 1.0.103`，消除 RustSec 5 项漏洞（含 RUSTSEC-2026-0007/0194/0195/0235/0009）。

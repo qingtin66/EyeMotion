@@ -1,7 +1,7 @@
 import { Renderer } from './renderer';
 import { AudioPlayer } from './audio';
 import { InputHandler } from './input';
-import { VirtualControls, createLanguageMenu } from './virtual-controls';
+import { createLanguageMenu } from './language-menu';
 import { setLocale } from './i18n';
 import { Bridge, GameState, GameEvent } from './bridge';
 
@@ -21,7 +21,6 @@ export class Game {
         this.renderer = new Renderer('gameCanvas');
         this.audio = new AudioPlayer();
         this.input = new InputHandler();
-        new VirtualControls();
         this.init();
     }
 
@@ -231,19 +230,8 @@ export class Game {
     }
 
     public async quitGame(): Promise<void> {
-        // 移动端：返回标题画面 (Start Screen)
-        // 桌面端：退出应用 (Exit App)
-        const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-        if (isMobile) {
-            console.log('Game: Mobile quit -> Returning to Start Screen');
-            await Bridge.returnToStartScreen();
-            this.audio.stopBGM();
-
-            // CRITICAL FIX: 重置鼠标按下状态，避免下一帧再次误触 START 按钮。
-            this.isMouseDown = false;
-        } else {
-            await this.exit();
-        }
+        // 桌面端：退出应用
+        await this.exit();
     }
 
     public async restartGame(): Promise<void> {
@@ -291,12 +279,6 @@ export class Game {
             window.close();
         }
     }
-}
-
-// 移动端适配检测（原 index.html 内联脚本迁入，满足 CSP script-src 'self'）
-if (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
-    document.documentElement.classList.add('mobile');
-    console.log('Mobile detected, adding .mobile class');
 }
 
 // Start the game

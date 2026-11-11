@@ -2,6 +2,8 @@
 
 > 依据：`docs/plans/modernization-plan.md`（用户已确认 §8 六决策点，按「Phase 0 + 1 先行」执行）
 > 最后更新：2026-11-11
+>
+> **2026-11-11 范围变更**：用户决定移除移动端，项目改为桌面-only（Windows/macOS/Linux），执行记录见文末「桌面-only 收敛（v0.3 平台范围变更）」。
 
 ## 总体状态
 
@@ -11,7 +13,8 @@
 | Phase 1 质量门禁（Q-1..Q-8） | ✅ 完成（Q-7 已于 Phase 4 落地；Q-8 Playwright 冒烟按 D-4 评估暂缓） |
 | Phase 2 架构 SSOT（A-1..A-6） | ✅ 完成（提交 e2aacb0） |
 | Phase 3 仓库卫生（H-1..H-5） | ✅ 完成（H-1/H-2/H-3/H-4/H-5 全部落地） |
-| Phase 4 依赖与平台（D-1..D-4） | ✅ 完成（本地门禁全绿；macOS CI 构建通过；Android 待首次 tag 实证；RustSec 5 项传递依赖漏洞已修复） |
+| Phase 4 依赖与平台（D-1..D-4） | ✅ 完成（本地门禁全绿；macOS CI 构建通过；RustSec 5 项传递依赖漏洞已修复） |
+| Phase 5 桌面-only 收敛（v0.3） | 🚧 实施完成，待 reviewer/tester 独立验收 |
 
 评审：reviewer 最终只读验收 task-8 = **PASS**（0 阻断项）。
 
@@ -169,3 +172,21 @@
 - **非阻断 warning 仍存在**：8 unmaintained（fxhash、pin-utils、proc-macro-error、unic-* 等）、2 unsound（glib 0.18 / rand 0.7，均为 tauri 构建链传递依赖，非运行时业务代码）；audit-check 只对 vulnerabilities 失败，warning 记录跟进。
 - **CI 复跑（2026-11-11 14:40）**：CI run [42973041682](https://github.com/qingtin66/EyeMotion/actions/runs/42973041682)（HEAD `9a77a4c`）全部 success —— security / quality / bundle-macos / Security audit 全绿；security job 日志 `No vulnerabilities were found`、`Found 8 unmaintained, 2 unsound`、npm audit `found 0 vulnerabilities`。
 - **复验结论**：reviewer task-15 终审 **PASS（0 阻断项）**；tester task-16 独立复验 **PASS（安全阻断已解除）**，本地全门禁绿 + CI 全绿。
+
+---
+
+## 桌面-only 收敛（v0.3 平台范围变更）
+
+> 决策依据：用户 2026-11-11 评估后认为项目不适合移动端小屏幕，要求移除移动端。ADR：`docs/decisions/ADR-0001-desktop-only-platform.md`。
+
+### 变更内容
+
+- **文档/方案**：`docs/plans/modernization-plan.md` 升 v0.3；新增 ADR-0001；AGENTS.md、product_context.md、todo.md、multi_platform.md、CHANGELOG 同步为桌面三平台。
+- **构建链**：`.github/workflows/release.yml` 删除 `release-android` job；`package.json` 删除 `build:android`/`build:ios`；`build_all.ps1` 删除 Android 段；删除 `MOBILE_ENV_SETUP.md`、`local_env.ps1` 与 `src-tauri/gen/android`（40 文件）。
+- **前端**：删除 `VirtualControls` 与虚拟控件；renderer 移除 `isMobile` 分支（字体/按钮缩放、Game Over/Pause 横排、移动暂停按钮、stats 边距）；game.ts 去掉移动 UA 与移动退出分支；`ui/index.html`/`ui/css/style.css` 移除移动容器与 `.mobile` 样式；语言菜单拆为 `ui/js/language-menu.ts`。
+- **Rust**：移除 `lib.rs` 的 `mobile_entry_point`、`commands/window.rs` 的 Android/iOS 条件编译与空实现、`eyemotion-core/src/config.rs` 的移动配置分支。
+
+### 验收
+
+- 本地门禁已通过：npm check:version / typecheck / lint / format:check / test（21 passed）/ build，cargo fmt / clippy -D warnings / test（54 passed），`npx tauri build --debug --no-bundle` 成功。
+- 待 reviewer 只读终审、tester 独立复验后补记结论并提交。

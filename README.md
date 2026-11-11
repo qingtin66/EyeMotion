@@ -34,7 +34,7 @@ EyeMotion is designed for minimalist interaction using only your mouse.
 > **⚠️ Disclaimer**: This program is a visual aid tool and not a substitute for professional medical treatment. Please consult a specialist for serious vision issues.
 
 ## 💻 System Requirements
-- **OS**: Windows 10/11
+- **OS**: Windows 10/11 (primary), macOS 10.15+, or Linux with WebKitGTK (desktop-only)
 - **Recommended Resolution**: 1600x900 or higher
 - **Display**: High refresh rate monitor (up to 540Hz) recommended for best experience.
 

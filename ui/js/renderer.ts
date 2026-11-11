@@ -8,7 +8,6 @@ export class Renderer {
     private buttonHoverFactors: Map<string, number> = new Map();
     private logicalWidth: number = 1920;
     private logicalHeight: number = 1080;
-    private isMobile: boolean = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
     constructor(canvasId: string) {
         const canvas = document.getElementById(canvasId) as HTMLCanvasElement;
@@ -133,9 +132,7 @@ export class Renderer {
         opacity: number = 1
     ): void {
         const pos = this.scalePos(x, y);
-        // 移动端字体放大 1.3 倍
-        const mobileScale = this.isMobile ? 1.3 : 1.0;
-        const finalSize = Math.round(this.scaleSize(size) * mobileScale);
+        const finalSize = Math.round(this.scaleSize(size));
         this.ctx.save();
         this.ctx.globalAlpha = opacity;
 
@@ -175,10 +172,9 @@ export class Renderer {
         mousePos?: { x: number; y: number },
         isMouseDown?: boolean
     ): void {
-        const mobileScale = this.isMobile ? 1.3 : 1.0;
-        const finalFontSize = this.scaleSize(fontSize) * mobileScale;
-        const finalPaddingX = this.scaleSize(paddingX) * mobileScale;
-        const finalPaddingY = this.scaleSize(paddingY) * mobileScale;
+        const finalFontSize = this.scaleSize(fontSize);
+        const finalPaddingX = this.scaleSize(paddingX);
+        const finalPaddingY = this.scaleSize(paddingY);
 
         this.ctx.font = `${finalFontSize}px 'AlumniSans'`;
         const textMetrics = this.ctx.measureText(text);
@@ -449,96 +445,38 @@ export class Renderer {
         // "GAME OVER" 字号翻倍：120 -> 240，位置微调
         this.drawText('GAME OVER', centerX, centerY - 250, 240, this.colorToCSS(this.theme.ui.primary_button.start));
 
-        if (this.isMobile) {
-            // Mobile: Horizontal Layout (横排)
-            // RESTART | QUIT
-            const btnGap = 200; // Gap between button centers
+        // 桌面端：竖排布局
+        this.drawButton(
+            'restart-btn',
+            'RESTART',
+            centerX,
+            centerY + 200,
+            64,
+            35,
+            16,
+            this.gradientColors(this.theme.ui.secondary_button),
+            () => (window as any).game.restartGame(),
+            mousePos,
+            isMouseDown
+        );
 
-            this.drawButton(
-                'restart-btn',
-                'RESTART',
-                centerX - btnGap / 2,
-                centerY + 200,
-                64,
-                35,
-                16,
-                this.gradientColors(this.theme.ui.secondary_button),
-                () => (window as any).game.restartGame(),
-                mousePos,
-                isMouseDown
-            );
-
-            this.drawButton(
-                'quit-btn',
-                'QUIT',
-                centerX + btnGap / 2,
-                centerY + 200,
-                64,
-                35,
-                16,
-                this.gradientColors(this.theme.ui.accent_button),
-                () => (window as any).game.quitGame(),
-                mousePos,
-                isMouseDown
-            );
-        } else {
-            // Desktop: Vertical Layout (竖排)
-            // RESTART
-            // QUIT
-
-            // RESTART 按钮，位置下移：150 -> 200
-            this.drawButton(
-                'restart-btn',
-                'RESTART',
-                centerX,
-                centerY + 200,
-                64,
-                35,
-                16,
-                this.gradientColors(this.theme.ui.secondary_button),
-                () => (window as any).game.restartGame(),
-                mousePos,
-                isMouseDown
-            );
-
-            // QUIT 按钮，距离增加到 140px (Game Over buttons too close)
-            this.drawButton(
-                'quit-btn',
-                'QUIT',
-                centerX,
-                centerY + 200 + 140,
-                64,
-                35,
-                16,
-                this.gradientColors(this.theme.ui.accent_button),
-                () => (window as any).game.quitGame(),
-                mousePos,
-                isMouseDown
-            );
-        }
+        this.drawButton(
+            'quit-btn',
+            'QUIT',
+            centerX,
+            centerY + 200 + 140,
+            64,
+            35,
+            16,
+            this.gradientColors(this.theme.ui.accent_button),
+            () => (window as any).game.quitGame(),
+            mousePos,
+            isMouseDown
+        );
     }
 
     private drawUI(state: GameState, mousePos?: { x: number; y: number }, isMouseDown?: boolean): void {
         this.drawStats(state);
-
-        // Pause Button (Top Center) - Only draw when playing and not transitioning
-        // 仅在移动端显示暂停按钮 (Mobile Only)
-        if (this.isMobile && !state.paused && !state.is_transitioning && !state.is_game_over) {
-            const topMargin = 60;
-            this.drawButton(
-                'game-pause-btn',
-                'II', // Pause Icon representation
-                this.logicalWidth / 2,
-                topMargin,
-                24,
-                20,
-                5,
-                this.gradientColors(this.theme.ui.accent_button),
-                () => (window as any).game.togglePause(),
-                mousePos,
-                isMouseDown
-            );
-        }
 
         if (state.paused) {
             this.ctx.fillStyle = 'rgba(0, 0, 0, 0.7)'; // Darker background
@@ -556,104 +494,50 @@ export class Renderer {
             const centerX = this.logicalWidth / 2;
             const centerY = this.logicalHeight / 2;
 
-            if (this.isMobile) {
-                // Mobile: Horizontal Layout (横排)
-                // RESUME | RESTART | QUIT
-                const btnGap = 200;
+            // 桌面端：竖排布局
+            const btnGap = 120;
 
-                // RESUME (Left)
-                this.drawButton(
-                    'pause-resume-btn',
-                    'RESUME',
-                    centerX - btnGap,
-                    centerY, // Centered vertically
-                    64,
-                    35,
-                    16,
-                    this.gradientColors(this.theme.ui.accent_button),
-                    () => (window as any).game.togglePause(),
-                    mousePos,
-                    isMouseDown
-                );
+            this.drawButton(
+                'pause-resume-btn',
+                'RESUME',
+                centerX,
+                centerY - 50,
+                64,
+                35,
+                16,
+                this.gradientColors(this.theme.ui.accent_button),
+                () => (window as any).game.togglePause(),
+                mousePos,
+                isMouseDown
+            );
 
-                // RESTART (Center)
-                this.drawButton(
-                    'pause-restart-btn',
-                    'RESTART',
-                    centerX,
-                    centerY,
-                    64,
-                    35,
-                    16,
-                    this.gradientColors(this.theme.ui.secondary_button),
-                    () => (window as any).game.restartGame(),
-                    mousePos,
-                    isMouseDown
-                );
+            this.drawButton(
+                'pause-restart-btn',
+                'RESTART',
+                centerX,
+                centerY - 50 + btnGap,
+                64,
+                35,
+                16,
+                this.gradientColors(this.theme.ui.secondary_button),
+                () => (window as any).game.restartGame(),
+                mousePos,
+                isMouseDown
+            );
 
-                // QUIT (Right)
-                this.drawButton(
-                    'pause-quit-btn',
-                    'QUIT',
-                    centerX + btnGap,
-                    centerY,
-                    64,
-                    35,
-                    16,
-                    this.gradientColors(this.theme.ui.primary_button),
-                    () => (window as any).game.quitGame(),
-                    mousePos,
-                    isMouseDown
-                );
-            } else {
-                // Desktop: Vertical Layout (竖排)
-                const btnGap = 120; // Increased from 100 to 120 for better spacing
-
-                // RESUME Button
-                this.drawButton(
-                    'pause-resume-btn',
-                    'RESUME',
-                    centerX,
-                    centerY - 50,
-                    64,
-                    35,
-                    16,
-                    this.gradientColors(this.theme.ui.accent_button),
-                    () => (window as any).game.togglePause(),
-                    mousePos,
-                    isMouseDown
-                );
-
-                // RESTART Button
-                this.drawButton(
-                    'pause-restart-btn',
-                    'RESTART',
-                    centerX,
-                    centerY - 50 + btnGap,
-                    64,
-                    35,
-                    16,
-                    this.gradientColors(this.theme.ui.secondary_button),
-                    () => (window as any).game.restartGame(),
-                    mousePos,
-                    isMouseDown
-                );
-
-                // QUIT Button
-                this.drawButton(
-                    'pause-quit-btn',
-                    'QUIT',
-                    centerX,
-                    centerY - 50 + btnGap * 2,
-                    64,
-                    35,
-                    16,
-                    this.gradientColors(this.theme.ui.primary_button),
-                    () => (window as any).game.quitGame(),
-                    mousePos,
-                    isMouseDown
-                );
-            }
+            this.drawButton(
+                'pause-quit-btn',
+                'QUIT',
+                centerX,
+                centerY - 50 + btnGap * 2,
+                64,
+                35,
+                16,
+                this.gradientColors(this.theme.ui.primary_button),
+                () => (window as any).game.quitGame(),
+                mousePos,
+                isMouseDown
+            );
 
             // Remove full screen resume area to avoid conflict with buttons
             // Users should click "RESUME" button explicitly, which is clearer
@@ -681,7 +565,7 @@ export class Renderer {
 
     private drawStats(state: GameState): void {
         const padding = 40;
-        const topMargin = this.isMobile ? 80 : 40; // Avoid mobile status bar
+        const topMargin = 40;
         const color = this.colorToCSS(this.theme.ui.stats_color);
         const size = 28;
 

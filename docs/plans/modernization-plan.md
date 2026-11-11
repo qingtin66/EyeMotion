@@ -1,6 +1,6 @@
 # EyeMotion 现代化计划方案
 
-> 版本：v0.2（三人评审后草案，待用户确认） · 日期：2026-11-11 · 团队：Lead（架构/主刀）+ Reviewer（审核）+ Tester（测试/构建）
+> 版本：v0.3（2026-11-11 平台范围修订：移除移动端，桌面-only） · 团队：Lead（架构/主刀）+ Reviewer（审核）+ Tester（测试/构建）
 
 ---
 
@@ -10,7 +10,7 @@ EyeMotion 是早期用旧版 Agent 客户端开发的 **Tauri v2 + Rust workspac
 
 本方案目标：在不改变游戏可玩性的前提下，把工程提升到 **可复现构建 + 有质量门禁 + 单一事实源(SSOT) + 安全基线达标** 的生产级基线，再逐步做依赖与平台现代化。
 
-**这是评审草案**：确认范围与优先级后才进入实施；确认前只做讨论，不做结构性改造。
+**范围变更（v0.3）**：用户于 2026-11-11 评估后决定**移除移动端（Android/iOS）**，项目范围收敛为 **Windows / macOS / Linux 桌面三平台**；决策记录见 `docs/decisions/ADR-0001-desktop-only-platform.md`。v0.2 的 Phase 0–4 已按原计划完成，本版调整平台范围并重定义 D-3。
 
 ---
 
@@ -50,7 +50,7 @@ EyeMotion 是早期用旧版 Agent 客户端开发的 **Tauri v2 + Rust workspac
 - 构建 hack：`patch_config.js` / `restore_config.js` / `build_all.ps1` 会 patch/restore `tauri.conf.json`（`:66/:145`，破坏性风险）。
 - 上下文文件缺失：`product_context.md`、`todo.md`（AGENTS.md 要求读取）；`multi_platform.md` 存在(5054B)。
 - README 徽章错链 `eyemotion/eyemotion`（实际 `qingtin66/EyeMotion`）。
-- 平台矩阵仅 windows-latest + ubuntu-22.04 + 单独 android job（大量 python workaround 生成 `tauri.settings.gradle`、patch build.gradle.kts），**无 macOS/iOS**。
+- 平台矩阵：Windows + Ubuntu + macOS 桌面三平台（Phase 4 后补齐 macOS）；移动端（Android/iOS）已按 v0.3 决策移除。
 
 ---
 
@@ -117,13 +117,13 @@ EyeMotion 是早期用旧版 Agent 客户端开发的 **Tauri v2 + Rust workspac
 | H-4 | 骨架补齐 | CONTRIBUTING、ISSUE/PR 模板、`product_context.md`、`todo.md`、README 徽章修链、`multi_platform.md` 更新 | S | 低 | 文件齐全、链接可达 |
 | H-5 | 文档版本对齐 | CHANGELOG / README_ZH 版本与 SSOT 一致 | S | 低 | 文档版本一致 |
 
-### Phase 4 — 依赖与平台现代化（P2，需评估，可后置）
+### Phase 4 — 依赖与平台现代化（P2，已完成；v0.3 平台范围修订）
 
 | 编号 | 任务 | 关键改动 | 工作量 | 风险 | 验收标准 |
 |---|---|---|---|---|---|
 | D-1 | 依赖升级 | rand 0.8→0.9、thiserror 1→2、tauri 2.x/vite 评估，逐个升级+回归 | M | 高 | 升级后构建+测试通过 |
-| D-2 | 平台矩阵扩展 | 增加 macOS build job；iOS 需 macOS runner+签名（暂缓/评估） | M | 中 | windows+ubuntu+macOS 至少 build 通过 |
-| D-3 | Android job 规范化 | 评估用 tauri 官方生成流程替代 python workaround | M | 中 | Android 构建稳定可维护 |
+| D-2 | 平台矩阵扩展（桌面） | 增加 macOS build job（保留 Windows/Linux），产物 app,dmg | M | 中 | windows+ubuntu+macOS 三桌面平台 build 通过 |
+| D-3 | 移动端下线（原 Android job 规范化取消） | 删除 release-android job、`src-tauri/gen/android`、移动构建脚本/包脚本、移动 UI 与 Rust 移动条件编译；保留桌面功能 | M | 中 | 仓库无 Android/iOS 构建链与移动专用代码；桌面三平台 CI 正常 |
 | D-4 | E2E 冒烟 | Playwright（Web 层）+ Tauri WebDriver 桌面冒烟（可选、高成本） | L | 高 | 关键路径端到端回归 |
 
 ---
@@ -136,6 +136,7 @@ EyeMotion 是早期用旧版 Agent 客户端开发的 **Tauri v2 + Rust workspac
 - PR 触发 lint + test + build 全绿方可合并，且缓存命中。
 - 三处版本号一致；`git ls-files AGENTS.md` 非空；仓库无二进制/重复锁。
 - 主题仅 Rust 一处定义；前端不直接写权威状态；pub API 中文文档 100%。
+- 仓库与构建脚本不含 Android/iOS 目标；移动端专用产物、脚本与 UI 已移除。
 
 ---
 
@@ -166,7 +167,7 @@ EyeMotion 是早期用旧版 Agent 客户端开发的 **Tauri v2 + Rust workspac
 ## 8. 待用户确认的决策点
 
 1. **推进顺序**：是否先做 Phase 0+1（止血+门禁）再做结构改造？_团队建议：0+1 先行，确认后再做 2/3/4。_
-2. **平台范围**：桌面优先还是全平台？_团队建议：桌面优先（win/linux/mac），Android 保现状，iOS 暂缓（缺 mac runner+签名）。_
+2. **平台范围（v0.3 已定）**：仅桌面三平台（Windows/macOS/Linux）；Android/iOS 已按用户 2026-11-11 决策移除，不再投入移动端适配。
 3. **版本目标**：_团队建议：先统一到 1.1.2；Phase 0+1 发 1.1.3；含结构改造发 1.2.0。_
 4. **破坏性清理**：是否授权删除 11 个旧客户端目录与 `release` 归档 zip（不可逆）？_团队建议：授权删 zip+重复锁；11 个旧目录先打 tag 再删。_
 5. **前端重构**：是否接受 `withGlobalTauri=false` + ES import？_团队建议：接受，作为独立 PR 于门禁后（Q-7）。_
@@ -184,4 +185,4 @@ EyeMotion 是早期用旧版 Agent 客户端开发的 **Tauri v2 + Rust workspac
 
 ---
 
-_本文件为评审草案，等待用户确认 §8 决策点后进入实施；确认前不改动代码结构。_
+_本文件 v0.3 已按用户指令移除移动端；Phase 0–4 完成情况见 `docs/plans/modernization-progress.md`。_

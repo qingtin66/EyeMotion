@@ -1,5 +1,7 @@
 # Phase 4 平台与依赖审核报告（只读评估）
 
+> **后记（2026-11-11）**：用户已决定移除移动端，项目改为桌面-only。本报告中 Android/D-3 内容仅作历史记录，相关实现已回退；最新范围见 `docs/decisions/ADR-0001-desktop-only-platform.md`。
+
 - **审核角色**：reviewer（只读）
 - **任务**：task-11（Phase 4 平台与依赖审核）
 - **基线**：已提交 HEAD = `3f8a674`（docs(plans): 记录构建、审核与测试验收结果）

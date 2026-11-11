@@ -1,5 +1,7 @@
 # Phase 4 独立验证报告（task-13）
 
+> **后记（2026-11-11）**：用户已决定移除移动端，项目改为桌面-only。本报告中 Android/D-3 内容仅作历史记录，相关实现已回退；最新范围见 `docs/decisions/ADR-0001-desktop-only-platform.md`。
+
 - 验证人：tester（独立复跑，未修改源文件）
 - 日期：2026-11-11
 - 被验证提交：`6e43198`（main，已 push origin）

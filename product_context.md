@@ -7,7 +7,7 @@
 EyeMotion 是一款面向眼健康的高性能**动态视觉追踪训练**桌面应用：通过线性/圆周等轨迹运动的球体，训练用户的平滑追视（smooth pursuit）、注视稳定性与动态视觉捕捉能力，缓解长时间屏幕使用带来的视疲劳。
 
 - 非医疗器械：仅作视觉辅助训练工具，不替代专业诊疗（README 已含免责声明）。
-- 目标平台：Windows 10/11 为主，macOS / Linux 桌面次之；Android 保持现状，iOS 暂缓（见现代化决策）。
+- 目标平台：Windows 10/11 为主，macOS / Linux 桌面次之；**桌面-only**（移动端已按 2026-11-11 决策移除，见 `docs/decisions/ADR-0001-desktop-only-platform.md`）。
 - 交互极简：仅鼠标；全屏沉浸；高刷新率（240–540Hz）友好。
 
 ## 2. 核心玩法与状态机
@@ -19,7 +19,7 @@ EyeMotion 是一款面向眼健康的高性能**动态视觉追踪训练**桌面
 ## 3. 架构分层（Phase 2 后）
 - `eyemotion-core`：纯逻辑库（无 Tauri 依赖）——`game_state`（状态机/物理）、`ball`（球体）、`visual_config`（主题 SSOT）、`config`（用户配置持久化）、`stage_config`、`validation`（入参校验）、`error`、`events`。
 - `src-tauri`：Tauri v2 应用壳——`commands/{game,window,config,theme}.rs` 命令模块、`state.rs`（AppState：Mutex<GameState> + Mutex<UserConfig>）、`lib.rs`（Builder/插件/invoke_handler）。
-- `ui/`：TypeScript + Canvas2D 前端——`game.ts`（主循环/事件）、`renderer.ts`（绘制，主题来自后端）、`bridge.ts`（命令封装）、`audio.ts`（WebAudio，音频唯一真实实现）、`i18n.ts`、`input.ts`、`virtual-controls.ts`。
+- `ui/`：TypeScript + Canvas2D 前端——`game.ts`（主循环/事件）、`renderer.ts`（绘制，主题来自后端）、`bridge.ts`（命令封装）、`audio.ts`（WebAudio，音频唯一真实实现）、`i18n.ts`、`input.ts`、`language-menu.ts`。
 
 ## 4. 主题与品牌（SSOT）
 - 品牌主色：`#0B1B7D`（深蓝背景）、`#153FA1`（网格浅色）。
