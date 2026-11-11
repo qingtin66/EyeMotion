@@ -136,7 +136,7 @@ html, body {
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 31, 86, 0.95);
+    background: rgba(11, 27, 125, 0.95);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -189,7 +189,7 @@ html, body {
     left: 0;
     right: 0;
     bottom: 0;
-    background: #001F56;
+    background: #0B1B7D;
     display: flex;
     flex-direction: column;
     align-items: center;

@@ -48,8 +48,8 @@ export class Renderer {
     private getDefaultTheme(): Theme {
         return {
             background: {
-                grid_color_dark: { r: 1, g: 19, b: 104 }, // #011368
-                grid_color_light: { r: 0, g: 49, b: 159 }, // #00319F
+                grid_color_dark: { r: 11, g: 27, b: 125 }, // #0B1B7D
+                grid_color_light: { r: 21, g: 63, b: 161 }, // #153FA1
                 grid_size: 80
             },
             ball: {
