@@ -13,6 +13,10 @@ All notable changes to this project will be documented in this file.
 ### Added
 - `scripts/release-notes.mjs`：跨平台从 CHANGELOG 提取发布说明。
 
+### Fixed
+- **Rust 传递依赖安全修复**：`bytes 1.11.1`、`time 0.3.47`、`plist 1.10.3`（`quick-xml 0.42.0`）、`rust_decimal 1.43.0`（移除 `rkyv 0.7`）、`tokio 1.53.3`、`anyhow 1.0.103`，消除 RustSec 5 项漏洞（含 RUSTSEC-2026-0007/0194/0195/0235/0009）。
+- **CI security job**：补 `permissions: checks: write + security-events: write`，修复 `rustsec/audit-check` 的 `Resource not accessible by integration`。
+
 ## [1.1.2] - 2026-03-01 "The Omni-Platform Update"
 
 > **Summary**: This release brings full Android support to the CI/CD pipeline, ensuring that every release now automatically includes Windows, Linux, and Android builds.
