@@ -6,7 +6,7 @@ use state::AppState;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    tauri::Builder::default()
+    let result = tauri::Builder::default()
         .plugin(tauri_plugin_log::Builder::default().build())
         .plugin(tauri_plugin_shell::init())
         .manage(AppState {
@@ -20,8 +20,8 @@ pub fn run() {
             toggle_pause,
             start_game,
             next_stage,
-                prev_stage,
-                exit_app,
+            prev_stage,
+            exit_app,
             minimize_window,
             toggle_fullscreen,
             show_main_window,
@@ -39,6 +39,11 @@ pub fn run() {
                 std::process::exit(0);
             }
         })
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+        .run(tauri::generate_context!());
+
+    if let Err(err) = result {
+        log::error!("error while running tauri application: {err}");
+        eprintln!("error while running tauri application: {err}");
+        std::process::exit(1);
+    }
 }

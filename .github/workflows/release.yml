@@ -47,7 +47,7 @@ jobs:
             librsvg2-dev
 
       - name: Install frontend dependencies
-        run: npm install
+        run: npm ci
 
       - name: Extract release notes
         id: extract_notes
@@ -124,7 +124,7 @@ jobs:
           echo "✅ Found NDK version: $NDK_VERSION (Path: $NDK_PATH)"
 
       - name: Install frontend dependencies
-        run: npm install
+        run: npm ci
 
       - name: Build Android APK
         env:

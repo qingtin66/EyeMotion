@@ -1,5 +1,9 @@
 use crate::Result;
 
+/// 球半径相对屏幕高度的除数：`radius = screen_h / RADIUS_DIVISOR`。
+/// 以高度（而非宽度）为基准，保证不同宽高比下球体视觉大小一致（1080 / 22.5 = 48）。
+const RADIUS_DIVISOR: f64 = 22.5;
+
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct Ball {
     pub screen_w: f64,
@@ -17,7 +21,7 @@ impl Ball {
             screen_w,
             screen_h,
             // 基于高度计算半径，保持在不同宽高比下的视觉一致性 (1080 / 22.5 = 48)
-            radius: screen_h / 22.5,
+            radius: screen_h / RADIUS_DIVISOR,
             x: screen_w / 2.0,
             y: screen_h / 2.0,
             vx: 0.0,
@@ -53,26 +57,34 @@ impl Ball {
         // 计算缩放比例
         let scale_x = screen_w / self.screen_w;
         let scale_y = screen_h / self.screen_h;
-        
+
         // 更新屏幕尺寸
         self.screen_w = screen_w;
         self.screen_h = screen_h;
         self.update_radius();
-        
+
         // 按比例缩放球的位置，使其在缩放后保持在相对一致的位置
         self.x *= scale_x;
         self.y *= scale_y;
-        
+
         // 确保球不会因为缩放跑出屏幕边界
         let r = self.radius;
-        if self.x < r { self.x = r; }
-        if self.x > self.screen_w - r { self.x = self.screen_w - r; }
-        if self.y < r { self.y = r; }
-        if self.y > self.screen_h - r { self.y = self.screen_h - r; }
+        if self.x < r {
+            self.x = r;
+        }
+        if self.x > self.screen_w - r {
+            self.x = self.screen_w - r;
+        }
+        if self.y < r {
+            self.y = r;
+        }
+        if self.y > self.screen_h - r {
+            self.y = self.screen_h - r;
+        }
     }
 
     pub fn update_radius(&mut self) {
-        self.radius = self.screen_h / 22.5;
+        self.radius = self.screen_h / RADIUS_DIVISOR;
     }
 
     pub fn set_speed(&mut self, speed: f64, direction: Option<(f64, f64)>) {
@@ -131,7 +143,7 @@ impl Ball {
             self.vx = self.vx.abs();
             bounced = true;
         } else if self.x > self.screen_w - r {
-            self.x = self.screen_w - r; 
+            self.x = self.screen_w - r;
             self.vx = -self.vx.abs();
             bounced = true;
         }
@@ -159,7 +171,8 @@ mod tests {
         let ball = Ball::new(1000.0, 800.0);
         assert_eq!(ball.screen_w, 1000.0);
         assert_eq!(ball.screen_h, 800.0);
-        assert_eq!(ball.radius, 25.0);
+        // 半径按设计以屏幕高度计算：800 / 22.5 ≈ 35.56（原 25.0 是 screen_w/40 时代的旧值）
+        assert_eq!(ball.radius, 800.0 / RADIUS_DIVISOR);
         assert_eq!((ball.x, ball.y), (500.0, 400.0));
     }
 

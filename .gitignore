@@ -8,6 +8,7 @@
 # Build & Dependencies
 node_modules/
 dist/
+coverage/
 target/
 src-tauri/target/
 src-tauri/gen/schemas
@@ -38,7 +39,7 @@ yarn-error.log*
 
 # Environment
 .env*
-! .env.example
+!.env.example
 
 # OS specific
 Thumbs.db
@@ -60,5 +61,4 @@ Cargo.lock.backup
 .trae/
 .windsurf/
 .workbuddy/
-AGENTS.md
 nul

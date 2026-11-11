@@ -41,8 +41,16 @@ impl Default for Theme {
     fn default() -> Self {
         Theme {
             background: BackgroundStyle {
-                grid_color_dark: Color { r: 1, g: 19, b: 104 }, // #011368
-                grid_color_light: Color { r: 0, g: 49, b: 159 }, // #00319F
+                grid_color_dark: Color {
+                    r: 1,
+                    g: 19,
+                    b: 104,
+                }, // #011368
+                grid_color_light: Color {
+                    r: 0,
+                    g: 49,
+                    b: 159,
+                }, // #00319F
                 grid_size: 80.0,
             },
             ball: BallStyle {
@@ -89,7 +97,11 @@ impl Default for Theme {
                     g: 240,
                     b: 240,
                 },
-                background_color: Color { r: 1, g: 19, b: 104 }, // #011368
+                background_color: Color {
+                    r: 1,
+                    g: 19,
+                    b: 104,
+                }, // #011368
             },
         }
     }

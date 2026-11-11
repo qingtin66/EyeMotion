@@ -51,8 +51,8 @@ impl UserConfig {
 
         #[cfg(any(target_os = "ios", target_os = "android"))]
         {
-            // Mobile platforms don't use file-based config in the same way, 
-            // or should use Tauri's path resolver if needed. 
+            // Mobile platforms don't use file-based config in the same way,
+            // or should use Tauri's path resolver if needed.
             // For now, return a safe dummy path to avoid errors.
             return Ok(PathBuf::from("."));
         }
