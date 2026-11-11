@@ -78,3 +78,22 @@
 1. Phase 3 全量门禁复跑 + 提交（本阶段）。
 2. 可选发布检查点：版本 1.1.3（CHANGELOG + tag + push）。
 3. Phase 4（视情况）：vite/vitest 升级、macOS CI job、Android 规范化、cargo-llvm-cov 覆盖率门禁、Q-7 withGlobalTauri=false + CSP 收紧。
+
+## 构建 / 审核 / 测试记录（HEAD=6e5d5a2）
+
+**构建**
+- `npm run build` ✅ vite 5.4.21，12 modules，dist 产物正常
+- `cargo build --workspace` ✅ dev profile
+- `npx tauri build --debug --no-bundle` ✅ 产物 `target\debug\eyemotion.exe`（18,208,768 bytes）
+- 已知 warning：bin 与 lib 同名产出 `eyemotion.pdb`（cargo#6313），未来可能变 hard error；建议后续给 src-tauri 的 lib 改名。
+
+**独立测试（tester, task-10）**
+- npm test 21 passed；覆盖率 语句/行 98.34%、分支 91.86%、函数 96.77%
+- cargo fmt --check clean；clippy -D warnings exit0；cargo test --workspace 54 passed
+- check:version 1.1.2；工作树干净
+
+**独立审核（reviewer, task-9）**
+- 判定 **PASS（0 阻断项）**：Phase2 A-1..A-6、Phase3 H-1..H-5 实质达成
+- 非阻断项处理：`state.rs` AppState / `lib.rs` run() 补中文 `///`；CONNECTING 文本改用主题色；停止跟踪 Android 生成产物（`src-tauri/gen/android/app/src/main/assets/` 已加入 .gitignore）→ 提交 `6e5d5a2`
+- 未处理（记录）：`.github/prompts/ui-ux-pro-max.prompt.md` 引用已删旧路径；`style.css` 静态品牌回退色（已有注释说明，仅首帧回退用途）；`rust-toolchain.toml` 用 stable（当前=1.92.x）
+
