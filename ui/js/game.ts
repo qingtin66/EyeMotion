@@ -223,11 +223,6 @@ export class Game {
     private async startGame(): Promise<void> {
         console.log('Game: Starting...');
         try {
-            if (this.gameState) {
-                this.gameState.is_start_screen = false;
-                this.gameState.is_transitioning = true;
-                this.gameState.transition_timer = 3.0; // 修改为 3.0s 以显示倒计时
-            }
             await Bridge.startGame();
             this.audio.startBGM();
         } catch (e) {
@@ -241,19 +236,11 @@ export class Game {
         const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
         if (isMobile) {
             console.log('Game: Mobile quit -> Returning to Start Screen');
-            if (this.gameState) {
-                this.gameState.is_start_screen = true;
-                this.gameState.paused = false;
-                this.gameState.is_game_over = false;
-                this.audio.stopBGM();
+            await Bridge.returnToStartScreen();
+            this.audio.stopBGM();
 
-                // CRITICAL FIX: Reset mouse down state to prevent immediate re-triggering of "Start" button
-                // if the touch/click position overlaps with the Start button on the next frame.
-                this.isMouseDown = false;
-
-                // 强制重绘一帧以更新 UI
-                this.renderer.render(this.gameState, this.mousePos, this.isMouseDown, true);
-            }
+            // CRITICAL FIX: 重置鼠标按下状态，避免下一帧再次误触 START 按钮。
+            this.isMouseDown = false;
         } else {
             await this.exit();
         }
@@ -267,7 +254,6 @@ export class Game {
             const state = await Bridge.resetGame(w, h);
             if (state) {
                 this.gameState = state;
-                this.gameState.is_start_screen = false; // Ensure it's false
             }
             await this.startGame();
         } catch (e) {
@@ -278,9 +264,6 @@ export class Game {
     private async togglePause(): Promise<void> {
         console.log('Game: Toggling pause...');
         try {
-            if (this.gameState) {
-                this.gameState.paused = !this.gameState.paused;
-            }
             await Bridge.togglePause();
         } catch (e) {
             console.error('Game: Failed to toggle pause:', e);

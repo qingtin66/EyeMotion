@@ -1,9 +1,9 @@
-import { Bridge, GameState, Theme, Color } from './bridge';
+import { Bridge, GameState, Theme, Color, GradientStyle } from './bridge';
 
 export class Renderer {
     private canvas: HTMLCanvasElement;
     private ctx: CanvasRenderingContext2D;
-    private theme: Theme;
+    private theme!: Theme;
     private buttons: Map<string, { x: number; y: number; w: number; h: number; callback: () => void }> = new Map();
     private buttonHoverFactors: Map<string, number> = new Map();
     private logicalWidth: number = 1920;
@@ -24,7 +24,6 @@ export class Renderer {
         this.ctx.imageSmoothingEnabled = true;
         this.ctx.imageSmoothingQuality = 'high';
 
-        this.theme = this.getDefaultTheme();
         this.resize();
         this.loadFonts();
     }
@@ -39,34 +38,25 @@ export class Renderer {
             const theme = await Bridge.getTheme();
             if (theme) {
                 this.theme = theme;
+                this.applyThemeVariables(theme);
             }
         } catch (e) {
-            console.warn('Renderer: Failed to load theme, using default', e);
+            console.warn('Renderer: Failed to load theme', e);
         }
     }
 
-    private getDefaultTheme(): Theme {
-        return {
-            background: {
-                grid_color_dark: { r: 11, g: 27, b: 125 }, // #0B1B7D
-                grid_color_light: { r: 21, g: 63, b: 161 }, // #153FA1
-                grid_size: 80
-            },
-            ball: {
-                gradient_start: { r: 252, g: 97, b: 112 }, // #FC6170
-                gradient_end: { r: 230, g: 37, b: 56 }, // #E62538
-                outline_color: { r: 255, g: 255, b: 255 },
-                radius_ratio: 0.05
-            },
-            ui: {
-                title_color: { r: 235, g: 191, b: 66 },
-                subtitle_color: { r: 255, g: 255, b: 255 },
-                stats_color: { r: 64, g: 197, b: 239 },
-                button_color: { r: 252, g: 97, b: 112 },
-                button_hover_color: { r: 230, g: 37, b: 56 },
-                background_color: { r: 1, g: 19, b: 104 }
-            }
-        };
+    /** 将主题色注入 CSS 变量，供 HTML/CSS 层复用，避免颜色重复定义。 */
+    private applyThemeVariables(theme: Theme): void {
+        const bg = theme.ui.background_color;
+        const root = document.documentElement.style;
+        root.setProperty('--brand-bg', this.colorToCSS(bg));
+        root.setProperty('--brand-bg-rgb', `${bg.r}, ${bg.g}, ${bg.b}`);
+        root.setProperty('--brand-grid-light', this.colorToCSS(theme.background.grid_color_light));
+    }
+
+    /** 将 Rust 下发的渐变转为 Canvas 可用的颜色数组。 */
+    private gradientColors(g: GradientStyle): string[] {
+        return [this.colorToCSS(g.start), this.colorToCSS(g.end)];
     }
 
     public resize(): void {
@@ -329,6 +319,9 @@ export class Renderer {
         isMouseDown?: boolean,
         showCursor: boolean = true
     ): void {
+        if (!this.theme) {
+            return; // 主题尚未从后端加载完成，等待下一帧
+        }
         this.ctx.imageSmoothingEnabled = true;
         this.ctx.imageSmoothingQuality = 'high';
 
@@ -388,7 +381,7 @@ export class Renderer {
         const scale = this.getScale();
 
         // 强制背景网格为正方形，不随屏幕拉伸变形
-        const gridSize = 80 * scale;
+        const gridSize = this.theme.background.grid_size * scale;
 
         const color1 = this.colorToCSS(this.theme.background.grid_color_dark);
         const color2 = this.colorToCSS(this.theme.background.grid_color_light);
@@ -432,7 +425,7 @@ export class Renderer {
     }
 
     private drawStartScreen(mousePos?: { x: number; y: number }, isMouseDown?: boolean): void {
-        this.drawText('EYE MOTION', this.logicalWidth / 2, 400, 200, '#EBBF42');
+        this.drawText('EYE MOTION', this.logicalWidth / 2, 400, 200, this.colorToCSS(this.theme.ui.title_color));
 
         this.drawButton(
             'start-btn',
@@ -442,7 +435,7 @@ export class Renderer {
             64,
             35,
             16, // 上下填充增加到 16px
-            ['#FC6170', '#E62538'],
+            this.gradientColors(this.theme.ui.primary_button),
             () => (window as any).game.startGame(),
             mousePos,
             isMouseDown
@@ -454,7 +447,7 @@ export class Renderer {
         const centerY = this.logicalHeight / 2;
 
         // "GAME OVER" 字号翻倍：120 -> 240，位置微调
-        this.drawText('GAME OVER', centerX, centerY - 250, 240, '#FC6170');
+        this.drawText('GAME OVER', centerX, centerY - 250, 240, this.colorToCSS(this.theme.ui.primary_button.start));
 
         if (this.isMobile) {
             // Mobile: Horizontal Layout (横排)
@@ -469,7 +462,7 @@ export class Renderer {
                 64,
                 35,
                 16,
-                ['#EBBF42', '#E68325'],
+                this.gradientColors(this.theme.ui.secondary_button),
                 () => (window as any).game.restartGame(),
                 mousePos,
                 isMouseDown
@@ -483,7 +476,7 @@ export class Renderer {
                 64,
                 35,
                 16,
-                ['#41C6F0', '#108FDF'],
+                this.gradientColors(this.theme.ui.accent_button),
                 () => (window as any).game.quitGame(),
                 mousePos,
                 isMouseDown
@@ -502,7 +495,7 @@ export class Renderer {
                 64,
                 35,
                 16,
-                ['#EBBF42', '#E68325'],
+                this.gradientColors(this.theme.ui.secondary_button),
                 () => (window as any).game.restartGame(),
                 mousePos,
                 isMouseDown
@@ -517,7 +510,7 @@ export class Renderer {
                 64,
                 35,
                 16,
-                ['#41C6F0', '#108FDF'],
+                this.gradientColors(this.theme.ui.accent_button),
                 () => (window as any).game.quitGame(),
                 mousePos,
                 isMouseDown
@@ -540,7 +533,7 @@ export class Renderer {
                 24,
                 20,
                 5,
-                ['#41C6F0', '#108FDF'],
+                this.gradientColors(this.theme.ui.accent_button),
                 () => (window as any).game.togglePause(),
                 mousePos,
                 isMouseDown
@@ -552,7 +545,13 @@ export class Renderer {
             this.ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
 
             // 暂停提示移至画面上方 1/4 处
-            this.drawText('PAUSED', this.logicalWidth / 2, this.logicalHeight * 0.25, 100, '#EBBF42');
+            this.drawText(
+                'PAUSED',
+                this.logicalWidth / 2,
+                this.logicalHeight * 0.25,
+                100,
+                this.colorToCSS(this.theme.ui.title_color)
+            );
 
             const centerX = this.logicalWidth / 2;
             const centerY = this.logicalHeight / 2;
@@ -571,7 +570,7 @@ export class Renderer {
                     64,
                     35,
                     16,
-                    ['#41C6F0', '#108FDF'],
+                    this.gradientColors(this.theme.ui.accent_button),
                     () => (window as any).game.togglePause(),
                     mousePos,
                     isMouseDown
@@ -586,7 +585,7 @@ export class Renderer {
                     64,
                     35,
                     16,
-                    ['#EBBF42', '#E68325'],
+                    this.gradientColors(this.theme.ui.secondary_button),
                     () => (window as any).game.restartGame(),
                     mousePos,
                     isMouseDown
@@ -601,7 +600,7 @@ export class Renderer {
                     64,
                     35,
                     16,
-                    ['#FC6170', '#E62538'],
+                    this.gradientColors(this.theme.ui.primary_button),
                     () => (window as any).game.quitGame(),
                     mousePos,
                     isMouseDown
@@ -619,7 +618,7 @@ export class Renderer {
                     64,
                     35,
                     16,
-                    ['#41C6F0', '#108FDF'],
+                    this.gradientColors(this.theme.ui.accent_button),
                     () => (window as any).game.togglePause(),
                     mousePos,
                     isMouseDown
@@ -634,7 +633,7 @@ export class Renderer {
                     64,
                     35,
                     16,
-                    ['#EBBF42', '#E68325'],
+                    this.gradientColors(this.theme.ui.secondary_button),
                     () => (window as any).game.restartGame(),
                     mousePos,
                     isMouseDown
@@ -649,7 +648,7 @@ export class Renderer {
                     64,
                     35,
                     16,
-                    ['#FC6170', '#E62538'],
+                    this.gradientColors(this.theme.ui.primary_button),
                     () => (window as any).game.quitGame(),
                     mousePos,
                     isMouseDown
@@ -670,13 +669,13 @@ export class Renderer {
 
             // 创建线性渐变：从上到下 (#41C6F0 -> #108FDF)
             const gradient = this.ctx.createLinearGradient(pos.x, pos.y - finalSize / 2, pos.x, pos.y + finalSize / 2);
-            gradient.addColorStop(0, '#41C6F0');
-            gradient.addColorStop(1, '#108FDF');
+            gradient.addColorStop(0, this.colorToCSS(this.theme.ui.accent_button.start));
+            gradient.addColorStop(1, this.colorToCSS(this.theme.ui.accent_button.end));
 
             this.drawText(stageText, this.logicalWidth / 2, 520, size, gradient);
 
             // Stage 倒计时数字保持原有黄色
-            this.drawText(`${count}`, this.logicalWidth / 2, 700, 160, '#EBBF42');
+            this.drawText(`${count}`, this.logicalWidth / 2, 700, 160, this.colorToCSS(this.theme.ui.title_color));
         }
     }
 

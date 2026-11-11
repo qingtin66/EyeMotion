@@ -21,6 +21,7 @@ pub fn run() {
             start_game,
             next_stage,
             prev_stage,
+            return_to_start_screen,
             exit_app,
             minimize_window,
             toggle_fullscreen,

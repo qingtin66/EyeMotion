@@ -77,15 +77,6 @@ fn user_config_defaults() {
     let c = UserConfig::default();
     assert_eq!(c.language, "en");
     assert_eq!(c.last_played_stage, 1);
-    assert!(c.audio.bgm.enabled);
-    assert!(c.audio.sfx.enabled);
-    assert!((c.audio.bgm.volume - 0.15).abs() < 1e-6);
-    assert!((c.audio.sfx.volume - 0.8).abs() < 1e-6);
-    assert_eq!(c.audio.bgm.chords.len(), 4);
-    assert_eq!(c.audio.bgm.melody.len(), 8);
-    assert_eq!(c.audio.sfx.bounce_freq_start, 150.0);
-    assert_eq!(c.audio.sfx.bounce_freq_end, 75.0);
-    assert_eq!(c.audio.sfx.bounce_duration, 0.08);
 }
 
 #[test]
@@ -115,23 +106,49 @@ fn stage_config_default() {
 #[test]
 fn theme_defaults() {
     let t = Theme::default();
+    // 品牌主题（#0B1B7D / #153FA1）为唯一来源。
     assert_eq!(
         (
             t.background.grid_color_dark.r,
             t.background.grid_color_dark.g,
             t.background.grid_color_dark.b
         ),
-        (1, 19, 104)
+        (11, 27, 125)
+    );
+    assert_eq!(
+        (
+            t.background.grid_color_light.r,
+            t.background.grid_color_light.g,
+            t.background.grid_color_light.b
+        ),
+        (21, 63, 161)
     );
     assert_eq!(t.background.grid_size, 80.0);
-    assert!((t.ball.radius_ratio - 1.0 / 40.0).abs() < 1e-12);
+    assert!((t.ball.radius_ratio - 0.05).abs() < 1e-12);
     assert_eq!(
         (
             t.ui.button_color.r,
             t.ui.button_color.g,
             t.ui.button_color.b
         ),
-        (255, 255, 255)
+        (252, 97, 112)
+    );
+    // 按钮渐变随主题统一下发
+    assert_eq!(
+        (
+            t.ui.primary_button.start.r,
+            t.ui.primary_button.start.g,
+            t.ui.primary_button.start.b
+        ),
+        (252, 97, 112)
+    );
+    assert_eq!(
+        (
+            t.ui.primary_button.end.r,
+            t.ui.primary_button.end.g,
+            t.ui.primary_button.end.b
+        ),
+        (230, 37, 56)
     );
 }
 

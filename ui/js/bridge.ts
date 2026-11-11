@@ -32,6 +32,11 @@ export interface Color {
     b: number;
 }
 
+export interface GradientStyle {
+    start: Color;
+    end: Color;
+}
+
 export interface Theme {
     background: {
         grid_color_dark: Color;
@@ -51,6 +56,9 @@ export interface Theme {
         button_color: Color;
         button_hover_color: Color;
         background_color: Color;
+        primary_button: GradientStyle;
+        secondary_button: GradientStyle;
+        accent_button: GradientStyle;
     };
 }
 
@@ -102,10 +110,6 @@ export class Bridge {
         await this.invoke('minimize_window');
     }
 
-    static async closeWindow(): Promise<void> {
-        await this.invoke('close_window');
-    }
-
     static async togglePause(): Promise<void> {
         await this.invoke('toggle_pause');
     }
@@ -124,6 +128,10 @@ export class Bridge {
 
     static async startGame(): Promise<void> {
         await this.invoke('start_game');
+    }
+
+    static async returnToStartScreen(): Promise<void> {
+        await this.invoke('return_to_start_screen');
     }
 
     static async resetGame(w: number, h: number): Promise<GameState | null> {

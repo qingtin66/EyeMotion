@@ -1,11 +1,10 @@
-use crate::{AudioParams, Result};
+use crate::Result;
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::PathBuf;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UserConfig {
-    pub audio: AudioParams,
     pub language: String,
     pub last_played_stage: i32,
 }
@@ -13,7 +12,6 @@ pub struct UserConfig {
 impl Default for UserConfig {
     fn default() -> Self {
         UserConfig {
-            audio: AudioParams::default(),
             language: "en".to_string(),
             last_played_stage: 1,
         }

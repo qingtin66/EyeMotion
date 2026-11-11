@@ -20,6 +20,13 @@ pub struct BallStyle {
     pub radius_ratio: f64,
 }
 
+/// 双色线性渐变，用于按钮等需要渐变填充的 UI 元素。
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct GradientStyle {
+    pub start: Color,
+    pub end: Color,
+}
+
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct UIStyle {
     pub title_color: Color,
@@ -28,6 +35,12 @@ pub struct UIStyle {
     pub button_color: Color,
     pub button_hover_color: Color,
     pub background_color: Color,
+    /// 主按钮渐变（START / QUIT 等）。
+    pub primary_button: GradientStyle,
+    /// 次按钮渐变（RESTART 等）。
+    pub secondary_button: GradientStyle,
+    /// 强调按钮渐变（RESUME / PAUSE / STAGE 标题等）。
+    pub accent_button: GradientStyle,
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
@@ -37,71 +50,108 @@ pub struct Color {
     pub b: u8,
 }
 
+/// 品牌主题的唯一来源（Rust 端 SSOT），前端只消费不硬编码。
 impl Default for Theme {
     fn default() -> Self {
         Theme {
             background: BackgroundStyle {
                 grid_color_dark: Color {
-                    r: 1,
-                    g: 19,
-                    b: 104,
-                }, // #011368
+                    r: 11,
+                    g: 27,
+                    b: 125,
+                }, // #0B1B7D
                 grid_color_light: Color {
-                    r: 0,
-                    g: 49,
-                    b: 159,
-                }, // #00319F
+                    r: 21,
+                    g: 63,
+                    b: 161,
+                }, // #153FA1
                 grid_size: 80.0,
             },
             ball: BallStyle {
                 gradient_start: Color {
-                    r: 16,
-                    g: 180,
-                    b: 195,
-                },
+                    r: 252,
+                    g: 97,
+                    b: 112,
+                }, // #FC6170
                 gradient_end: Color {
-                    r: 17,
-                    g: 197,
-                    b: 140,
-                },
+                    r: 230,
+                    g: 37,
+                    b: 56,
+                }, // #E62538
                 outline_color: Color {
-                    r: 70,
-                    g: 226,
-                    b: 213,
+                    r: 255,
+                    g: 255,
+                    b: 255,
                 },
-                radius_ratio: 1.0 / 40.0,
+                radius_ratio: 0.05,
             },
             ui: UIStyle {
                 title_color: Color {
                     r: 235,
                     g: 191,
                     b: 66,
-                },
+                }, // #EBBF42
                 subtitle_color: Color {
-                    r: 252,
-                    g: 97,
-                    b: 112,
+                    r: 255,
+                    g: 255,
+                    b: 255,
                 },
                 stats_color: Color {
                     r: 64,
                     g: 197,
                     b: 239,
-                },
+                }, // #40C5EF
                 button_color: Color {
-                    r: 255,
-                    g: 255,
-                    b: 255,
-                },
+                    r: 252,
+                    g: 97,
+                    b: 112,
+                }, // #FC6170
                 button_hover_color: Color {
-                    r: 240,
-                    g: 240,
-                    b: 240,
-                },
+                    r: 230,
+                    g: 37,
+                    b: 56,
+                }, // #E62538
                 background_color: Color {
-                    r: 1,
-                    g: 19,
-                    b: 104,
-                }, // #011368
+                    r: 11,
+                    g: 27,
+                    b: 125,
+                }, // #0B1B7D
+                primary_button: GradientStyle {
+                    start: Color {
+                        r: 252,
+                        g: 97,
+                        b: 112,
+                    }, // #FC6170
+                    end: Color {
+                        r: 230,
+                        g: 37,
+                        b: 56,
+                    }, // #E62538
+                },
+                secondary_button: GradientStyle {
+                    start: Color {
+                        r: 235,
+                        g: 191,
+                        b: 66,
+                    }, // #EBBF42
+                    end: Color {
+                        r: 230,
+                        g: 131,
+                        b: 37,
+                    }, // #E68325
+                },
+                accent_button: GradientStyle {
+                    start: Color {
+                        r: 65,
+                        g: 198,
+                        b: 240,
+                    }, // #41C6F0
+                    end: Color {
+                        r: 16,
+                        g: 143,
+                        b: 223,
+                    }, // #108FDF
+                },
             },
         }
     }
