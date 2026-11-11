@@ -59,5 +59,6 @@ Cargo.lock.backup
 .shared/
 .trae/
 .windsurf/
+.workbuddy/
 AGENTS.md
 nul
