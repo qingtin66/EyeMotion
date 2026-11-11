@@ -191,3 +191,5 @@
 - 本地门禁已通过：npm check:version / typecheck / lint / format:check / test（21 passed）/ build，cargo fmt / clippy -D warnings / test（54 passed），`npx tauri build --debug --no-bundle` 成功。
 - reviewer task-20 只读终审 **PASS（0 阻断）**、tester task-21 独立验证 **PASS**（HEAD `0a5b91e`，69 files +265/−1748，三平台桌面 CI 完整）。
 - **终审残余清理（task-22）**：删除 `src-tauri/icons/android`（17 文件）与 `src-tauri/icons/ios`（18 文件）移动图标；`.github/PULL_REQUEST_TEMPLATE.md` 影响面移除 Android/iOS；`src-tauri/Cargo.toml` `crate-type` 由 `["staticlib", "cdylib", "rlib"]` 收敛为 `["rlib"]`；删除无入口语言菜单死代码。清理后全量门禁与桌面构建复跑通过。
+- reviewer task-23 对 `46cc35b` 只读复核 **PASS（0 阻断）**：独立复跑 npm/cargo 全门禁与桌面构建，确认 35 个移动图标、PR 模板、crate-type、language-menu 死代码及移动关键字均无残留。文档 P3（CHANGELOG/ADR 中已删语言菜单表述）已由 `4dd5d09` 修正。
+- **最终 CI**：CI run [42979262663](https://github.com/qingtin66/EyeMotion/actions/runs/42979262663)（HEAD `4dd5d09`）全部 success —— quality / bundle-macos / security（RustSec + npm audit）/ Security audit 全绿。
