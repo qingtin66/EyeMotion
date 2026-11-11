@@ -8,10 +8,10 @@
 | 阶段 | 状态 |
 | --- | --- |
 | Phase 0 止血（P0-1..8） | ✅ 完成 |
-| Phase 1 质量门禁（Q-1..Q-8） | ✅ 完成（Q-7 withGlobalTauri=false 按计划后置为独立 PR；Q-8 Playwright 冒烟为可选项未做） |
+| Phase 1 质量门禁（Q-1..Q-8） | ✅ 完成（Q-7 已于 Phase 4 落地；Q-8 Playwright 冒烟按 D-4 评估暂缓） |
 | Phase 2 架构 SSOT（A-1..A-6） | ✅ 完成（提交 e2aacb0） |
 | Phase 3 仓库卫生（H-1..H-5） | ✅ 完成（H-1/H-2/H-3/H-4/H-5 全部落地） |
-| Phase 4 依赖与平台（D-1..D-4） | ⬜ 未开始（视情况） |
+| Phase 4 依赖与平台（D-1..D-4） | ✅ 完成（本地门禁全绿；macOS/Android 构建待 CI 验证） |
 
 评审：reviewer 最终只读验收 task-8 = **PASS**（0 阻断项）。
 
@@ -97,3 +97,59 @@
 - 非阻断项处理：`state.rs` AppState / `lib.rs` run() 补中文 `///`；CONNECTING 文本改用主题色；停止跟踪 Android 生成产物（`src-tauri/gen/android/app/src/main/assets/` 已加入 .gitignore）→ 提交 `6e5d5a2`
 - 未处理（记录）：`.github/prompts/ui-ux-pro-max.prompt.md` 引用已删旧路径；`style.css` 静态品牌回退色（已有注释说明，仅首帧回退用途）；`rust-toolchain.toml` 用 stable（当前=1.92.x）
 
+
+## Phase 4 依赖与平台（✅ 完成，本轮）
+
+### D-1 依赖升级（Rust + 前端）
+
+- **Rust**：`Cargo.toml` 升级 `rand = "0.9"`、`thiserror = "2.0"`；锁定版本 rand 0.9.5 / rand_chacha 0.9.0 / rand_core 0.9.5 / thiserror 2.0.17。迁移点：`eyemotion-core/src/ball.rs:34`、`eyemotion-core/src/game_state.rs:107,229` 的 `thread_rng()` → `rng()`；`ball.rs:40-41`、`game_state.rs:108,232,242,258` 的 `gen_range` → `random_range`；`game_state.rs:234,244,249,260,268` 的 `gen_bool` → `random_bool`。
+- **前端**：`vite ^8.3.8`、`vitest ^5.1.0`、`@vitest/coverage-v8 ^5.1.0`、`jsdom ^29.1.1`；Node 24（`.nvmrc` / `.node-version` = 24，`engines.node >=22.12.0`）；`package.json` 增加 `"type": "module"`。
+- **Tauri npm 与 crate 对齐（关键坑）**：crates.io 最新稳定 `tauri` crate 为 **2.9.5**，而 npm `@tauri-apps/api` 已到 2.12.4；CLI 会因 `tauri (2.9.5) : @tauri-apps/api (2.12.4)` 版本不匹配直接 exit 1。因此固定 `@tauri-apps/api = 2.9.1`、`@tauri-apps/cli = 2.9.6`（同 2.9 minor），不使用 2.12 CLI；待 crate 发布 2.12 后再同步。
+
+### D-2 macOS 构建
+
+- `.github/workflows/release.yml` matrix 改为 `[windows-latest, ubuntu-22.04, macos-latest]`，node 24 + `Swatinem/rust-cache@v2`；tauri-action 按平台传 `args`（ubuntu `--bundles deb,appimage`、macos `--bundles app,dmg`、windows 空）。
+- 发布说明提取从 `shell: pwsh` + awk 改为跨平台 Node 脚本 `scripts/release-notes.mjs`（读取 `CHANGELOG.md` 对应版本段，写入 `GITHUB_ENV`）。
+- `.github/workflows/ci.yml` 新增 `bundle-macos` job（macos-latest，`npx tauri build --no-bundle`，timeout 30m）；全部 `node-version` 由 20 → 24（ci.yml 与 release.yml）。
+
+### D-3 Android 官方流程
+
+- `.github/workflows/release.yml` 的 `release-android` 删除两段 python workaround（生成 `tauri.settings.gradle` / patch Gradle），改为：
+  - 仅当 `src-tauri/gen/android` 不存在时执行 `npx tauri android init --ci`（本仓库该目录已入库）；
+  - `npx tauri android build --apk --split-per-abi --ci`；
+  - 新增 **Verify APK artifacts** 断言（`find ... -name '*.apk'` 数量 > 0）。
+- Android SDK 33 → 36 / build-tools 36.0.0（与生成模板 `src-tauri/gen/android/app/build.gradle.kts:17,23` 的 compileSdk/targetSdk=36 对齐），NDK 保持 r27（27.2.12479018）。
+- 风险：Tauri issue #13357（`assembleUniversalRelease`）在旧版 CLI 仍可能触发；当前钉 CLI 2.9.6，若 CI 首次 tag 构建失败，回退方案为 `--aab` / `--split-per-abi` 并记录版本。
+- **签名规范化**：`src-tauri/gen/android/app/build.gradle.kts` 移除硬编码 `release.jks` 密码，改为读取 `src-tauri/gen/android/keystore.properties`（存在时用 release 签名，否则 CI 回退 debug 签名）；`git rm --cached src-tauri/gen/release.jks` 并忽略 `src-tauri/gen/*.jks` / `keystore.properties`。历史提交仍含旧密钥，建议轮换 keystore 密码。
+
+### D-4 E2E 评估（结论：暂缓）
+
+- 现状：前端测试仅 Vitest + jsdom 覆盖 `ui/js/i18n.ts`、`ui/js/audio.ts` 纯逻辑；`renderer.ts` / `game.ts` / `input.ts` / `virtual-controls.ts` 依赖 Canvas/DOM/Tauri IPC，未纳入。
+- 评估：Playwright 对 Tauri 桌面应用需 `tauri-driver`（WebDriver），Windows/Linux 可、**macOS 不支持**，且 CI 无显示环境、WebView2 启动脆弱；纯浏览器 `vite dev` 又因 `Bridge.invoke` 在非 Tauri 环境返回 null 无法复现真实交互。
+- 结论：本轮不引入 E2E；先以「三平台 `--no-bundle` 构建 + Android APK 断言」作为平台回归门禁。后续若需 E2E，前置条件为抽出 `Bridge` 可注入 mock + Canvas 渲染层可替换 headless，再评估 Playwright/tauri-driver。
+
+### Q-7 安全收尾（随 Phase 4 落地）
+
+- `src-tauri/tauri.conf.json`：`withGlobalTauri: true → false`；CSP `script-src 'self' 'unsafe-inline'` → `script-src 'self'`（`style-src` 保留 `'unsafe-inline'`，因运行时动态 style）。
+- `ui/js/bridge.ts`：删除 `window.__TAURI__` 全局，改为 `import { invoke as tauriInvoke } from '@tauri-apps/api/core'`，以 `'__TAURI_INTERNALS__' in window` 判断后调用。
+- `ui/index.html`：删除内联 `<style>` ×2 与内联 `<script>`；`ui/css/style.css` 增加品牌背景与 `.mobile #window-controls{display:none!important}`；`ui/js/game.ts` 承接移动端 UA 检测。
+- `vite.config.ts`：改用 `import.meta.dirname` + `resolve` 解析入口。
+
+### Phase 4 门禁实测（本地，全新 `npm ci`）
+
+| 检查 | 结果 |
+| --- | --- |
+| `npm ci` | ✅ 194 packages，7s |
+| `npm run check:version` | ✅ 1.1.2 |
+| `npm run typecheck` / `lint` / `format:check` | ✅ 全部通过 |
+| `npm test` | ✅ 21 passed（i18n 15 + audio 6，Vitest 5.1.0） |
+| `npm run test:coverage` | ✅ 语句 97.34% / 分支 90.12% / 函数 96.87% / 行 98.56% |
+| `npm run build` | ✅ vite 8.3.8，13 modules |
+| `cargo fmt --all -- --check` | ✅ clean |
+| `cargo clippy --workspace --all-targets -- -D warnings` | ✅ 0 告警 |
+| `cargo test --workspace` | ✅ 54 passed（core 15 + config_contract 12 + game_state 16 + physics 11） |
+| `npx tauri build --debug --no-bundle` | ✅ exit 0，`target/debug/eyemotion.exe` 18,144,256 bytes（2026-11-11 14:07:02） |
+| `npm audit --omit=dev --audit-level=high` | ✅ 0 vulnerabilities |
+| workflow YAML 解析 | ✅ ci.yml / release.yml 均通过 js-yaml |
+
+> 说明：macOS / Android 实际构建需在 GitHub Actions 运行后确认；本地为 Windows，仅静态校验 workflow 与 Android 模板版本。

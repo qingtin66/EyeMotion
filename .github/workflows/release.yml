@@ -13,13 +13,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        platform: [windows-latest, ubuntu-22.04]
-    
+        platform: [windows-latest, ubuntu-22.04, macos-latest]
+
     runs-on: ${{ matrix.platform }}
-    
+
     env:
       RELEASE_BODY: "See the assets to download this version and install."
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -27,10 +27,13 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
+          cache: npm
 
       - name: Install Rust stable
         uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
 
       - name: Install Linux Dependencies
         if: matrix.platform == 'ubuntu-22.04'
@@ -51,27 +54,7 @@ jobs:
 
       - name: Extract release notes
         id: extract_notes
-        shell: pwsh
-        run: |
-          if (Test-Path CHANGELOG.md) {
-            $changelog = Get-Content CHANGELOG.md -Raw
-            $version = "${{ github.ref_name }}".TrimStart('v')
-            # Regex to match the section for the current version
-            # Matches from "## [version]" until the next "## [" or end of file
-            if ($changelog -match "(?s)## \[$version\].*?(?=## \[|$)") {
-              $notes = $matches[0]
-              # Remove the header line to avoid duplication in release body
-              $notes = $notes -replace "^## \[.*?\] - .*?(\r?\n)+", ""
-              $notes = $notes.Trim()
-              
-              # Write to GITHUB_ENV for multi-line support
-              "RELEASE_BODY<<EOF" | Out-File -FilePath $env:GITHUB_ENV -Append
-              $notes | Out-File -FilePath $env:GITHUB_ENV -Append
-              "EOF" | Out-File -FilePath $env:GITHUB_ENV -Append
-            } else {
-              Write-Host "No changelog found for version $version"
-            }
-          }
+        run: node scripts/release-notes.mjs
 
       - name: Build the app
         uses: tauri-apps/tauri-action@v0
@@ -83,7 +66,7 @@ jobs:
           releaseBody: ${{ env.RELEASE_BODY }}
           releaseDraft: false
           prerelease: false
-          args: ${{ matrix.platform == 'ubuntu-22.04' && '--bundles deb,appimage' || '' }}
+          args: ${{ matrix.platform == 'ubuntu-22.04' && '--bundles deb,appimage' || matrix.platform == 'macos-latest' && '--bundles app,dmg' || '' }}
 
   release-android:
     runs-on: ubuntu-latest
@@ -99,153 +82,41 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
+          cache: npm
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
         with:
           targets: aarch64-linux-android armv7-linux-androideabi i686-linux-android x86_64-linux-android
 
+      - uses: Swatinem/rust-cache@v2
+
       - name: Setup Android SDK/NDK
         uses: android-actions/setup-android@v3
         with:
-          sdk-version: '33'
-          build-tools-version: '33.0.0'
+          sdk-version: '36'
+          build-tools-version: '36.0.0'
           ndk-version: '27.2.12479018'
-
-      - name: Set Android environment variables
-        id: android-env
-        run: |
-          echo "ANDROID_HOME=/usr/local/lib/android/sdk" >> $GITHUB_ENV
-          NDK_VERSION=$(ls /usr/local/lib/android/sdk/ndk/ | sort -V | tail -1)
-          NDK_PATH="/usr/local/lib/android/sdk/ndk/$NDK_VERSION"
-          echo "NDK_HOME=$NDK_PATH" >> $GITHUB_ENV
-          echo "ndk_path=$NDK_PATH" >> $GITHUB_OUTPUT
-          echo "✅ Found NDK version: $NDK_VERSION (Path: $NDK_PATH)"
 
       - name: Install frontend dependencies
         run: npm ci
 
-      - name: Build Android APK
-        env:
-          ANDROID_HOME: /usr/local/lib/android/sdk
-          NDK_HOME: ${{ steps.android-env.outputs.ndk_path }}
+      - name: Init Android project
         run: |
-          echo "🔍 Environment Check:"
-          echo "ANDROID_HOME: $ANDROID_HOME"
-          echo "NDK_HOME: $NDK_HOME"
-          
-          # 1. Clean and Initialize
-          rm -rf src-tauri/gen/android
-          npx tauri android init --ci
-
-          # 2. Ensure Cargo registry is populated
-          # We need to fetch dependencies so the python script can find them in the registry
-          cargo fetch --manifest-path src-tauri/Cargo.toml
-          
-          # 3. Workaround: Precisely generate tauri.settings.gradle
-          # This file is often missed by 'init --ci' but required by 'settings.gradle'.
-          python3 - <<'EOF'
-          import os
-          import glob
-          import re
-
-          registry_base = os.path.expanduser("~/.cargo/registry/src/index.crates.io-*")
-          registries = glob.glob(registry_base)
-          if not registries:
-              print("❌ ERROR: Cargo registry not found")
-              exit(1)
-          
-          registry_path = registries[0]
-          print(f"🔍 Searching in registry: {registry_path}")
-
-          def find_exact_crate(name_pattern):
-              """Precisely match crate names like name-1.2.3 and exclude name-runtime-1.2.3"""
-              # matches name followed by a hyphen and a digit (start of version)
-              matches = glob.glob(os.path.join(registry_path, f"{name_pattern}-[0-9]*"))
-              exact = [m for m in matches if re.match(
-                  rf".*/{re.escape(name_pattern)}-\d+\.\d+", m
-              )]
-              if not exact:
-                  return None
-              result = sorted(exact)[-1]  # Get the latest version
-              return result
-
-          tauri_path = find_exact_crate("tauri")
-          shell_path = find_exact_crate("tauri-plugin-shell")
-
-          if not tauri_path:
-              print(f"❌ ERROR: 'tauri' crate not found in {registry_path}")
-              print("Listing candidates:")
-              for f in sorted(glob.glob(os.path.join(registry_path, "tauri*"))):
-                  print(f"  - {os.path.basename(f)}")
-              exit(1)
-
-          if not shell_path:
-              print(f"❌ ERROR: 'tauri-plugin-shell' crate not found in {registry_path}")
-              exit(1)
-
-          # Verify source subdirectories
-          tauri_android = os.path.join(tauri_path, "mobile", "android")
-          shell_android = os.path.join(shell_path, "android")
-
-          if not os.path.isdir(tauri_android) or not os.path.isdir(shell_android):
-              print("❌ ERROR: Android source dirs missing in crates")
-              exit(1)
-
-          content = (
-              "// DYNAMICALLY GENERATED BY CI AS WORKAROUND\n"
-              "include ':tauri-android'\n"
-              f"project(':tauri-android').projectDir = new File(\"{tauri_android.replace('\\', '\\\\')}\")\n"
-              "include ':tauri-plugin-shell'\n"
-              f"project(':tauri-plugin-shell').projectDir = new File(\"{shell_android.replace('\\', '\\\\')}\")\n"
-          )
-          with open("src-tauri/gen/android/tauri.settings.gradle", "w") as f:
-              f.write(content)
-          print(f"✅ Generated tauri.settings.gradle successfully.")
-          print("--- File Content ---")
-          print(content)
-          EOF
-
-          # 4. Apply ABI Splits Patch (Tauri v2 Bug workaround)
-          python3 - <<'EOF'
-          import os
-          path = "src-tauri/gen/android/app/build.gradle.kts"
-          with open(path, "r") as f:
-              content = f.read()
-
-          splits_config = (
-              "\n    splits {\n"
-              "        abi {\n"
-              "            isEnable = true\n"
-              "            reset()\n"
-              "            include(\"arm64-v8a\", \"armeabi-v7a\", \"x86_64\")\n"
-              "            isUniversalApk = true\n"
-              "        }\n"
-              "    }\n"
-          )
-          if "splits {" not in content:
-              content = content.replace("buildTypes {", splits_config + "    buildTypes {")
-              with open(path, "w") as f:
-                  f.write(content)
-              print("✅ Patched build.gradle.kts successfully")
-          EOF
-          
-          # 5. Verify Critical Configuration
-          if [ ! -f "src-tauri/gen/android/tauri.settings.gradle" ]; then
-            echo "❌ ERROR: tauri.settings.gradle is missing!"
-            exit 1
+          if [ ! -d src-tauri/gen/android ]; then
+            npx tauri android init --ci
           fi
-          if ! grep -q "isUniversalApk" src-tauri/gen/android/app/build.gradle.kts; then
-            echo "❌ ERROR: splits patch not found!"
-            exit 1
-          fi
-          echo "✅ Pre-build verification passed."
 
-          # 6. Build for aarch64 (ARM64)
-          npx tauri android build --target aarch64
+      - name: Build Android APKs
+        run: npx tauri android build --apk --split-per-abi --ci
 
-        
+      - name: Verify APK artifacts
+        run: |
+          count="$(find src-tauri/gen/android/app/build/outputs/apk -name '*.apk' | wc -l)"
+          echo "Found $count APK(s)"
+          test "$count" -gt 0
+
       - name: Upload Android Artifacts
         uses: actions/upload-artifact@v4
         with:

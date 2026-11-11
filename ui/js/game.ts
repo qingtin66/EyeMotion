@@ -293,5 +293,11 @@ export class Game {
     }
 }
 
+// 移动端适配检测（原 index.html 内联脚本迁入，满足 CSP script-src 'self'）
+if (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+    document.documentElement.classList.add('mobile');
+    console.log('Mobile detected, adding .mobile class');
+}
+
 // Start the game
 new Game();

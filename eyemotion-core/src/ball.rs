@@ -31,14 +31,14 @@ impl Ball {
 
     pub fn reset_to_random_pos(&mut self, screen_w: f64, screen_h: f64) {
         use rand::Rng;
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
         self.screen_w = screen_w;
         self.screen_h = screen_h;
         self.update_radius();
         let r = self.radius;
         // 随机生成起始点，避开边缘
-        self.x = rng.gen_range((r + 50.0)..(self.screen_w - r - 50.0));
-        self.y = rng.gen_range((r + 50.0)..(self.screen_h - r - 50.0));
+        self.x = rng.random_range((r + 50.0)..(self.screen_w - r - 50.0));
+        self.y = rng.random_range((r + 50.0)..(self.screen_h - r - 50.0));
         self.vx = 0.0;
         self.vy = 0.0;
     }

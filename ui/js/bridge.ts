@@ -2,6 +2,7 @@
  * Bridge for communication between Frontend (JS/TS) and Backend (Rust)
  * Updated to match Rust GameState struct exactly.
  */
+import { invoke as tauriInvoke } from '@tauri-apps/api/core';
 
 export interface Ball {
     screen_w: number;
@@ -68,23 +69,12 @@ export type GameEvent =
     | { type: 'StageCompleted'; stage: number }
     | { type: 'GameOver' };
 
-declare global {
-    interface Window {
-        __TAURI__: {
-            core: {
-                invoke: (command: string, args?: any) => Promise<any>;
-            };
-        };
-    }
-}
-
 export class Bridge {
     public static async invoke<T>(command: string, args: any = {}): Promise<T | null> {
         try {
-            // @ts-ignore
-            if (window.__TAURI__) {
-                // @ts-ignore
-                return await window.__TAURI__.core.invoke(command, args);
+            // withGlobalTauri=false：仅在 Tauri WebView 运行时可用（__TAURI_INTERNALS__ 由 Tauri 注入）
+            if (typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window) {
+                return await tauriInvoke<T>(command, args);
             }
             console.warn(`Bridge: Tauri not available for command ${command}`);
             return null;

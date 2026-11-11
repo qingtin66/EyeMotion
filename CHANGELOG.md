@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### Changed
+- **依赖现代化**：Rust 升级 `rand 0.9` / `thiserror 2`；前端升级 Vite 8 / Vitest 5 / jsdom 29，Node 24。
+- **平台构建**：release 增加 macOS job；Android 改用官方 `tauri android build --apk --split-per-abi` 流程并断言 APK 产物。
+- **安全收尾（Q-7）**：`withGlobalTauri=false`；CSP 移除 `script-src 'unsafe-inline'`；前端改用 `@tauri-apps/api/core` 的 `invoke`。
+- **Android 签名**：移除 `build.gradle.kts` 硬编码密钥，改读 `keystore.properties`；停止跟踪 `release.jks`。
+
+### Added
+- `scripts/release-notes.mjs`：跨平台从 CHANGELOG 提取发布说明。
+
 ## [1.1.2] - 2026-03-01 "The Omni-Platform Update"
 
 > **Summary**: This release brings full Android support to the CI/CD pipeline, ensuring that every release now automatically includes Windows, Linux, and Android builds.

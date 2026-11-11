@@ -15,7 +15,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
           cache: npm
       - name: Install Rust (from rust-toolchain.toml)
         uses: dtolnay/rust-toolchain@stable
@@ -46,6 +46,23 @@ jobs:
         run: cargo clippy --workspace --all-targets -- -D warnings
       - name: Rust tests
         run: cargo test --workspace
+  bundle-macos:
+    runs-on: macos-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - name: Install Rust (from rust-toolchain.toml)
+        uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Install frontend dependencies
+        run: npm ci
+      - name: Build macOS app (no bundle)
+        run: npx tauri build --no-bundle
   security:
     runs-on: ubuntu-latest
     steps:
@@ -53,7 +70,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
           cache: npm
       - name: RustSec audit
         uses: rustsec/audit-check@v2.0.0

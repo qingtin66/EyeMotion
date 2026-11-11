@@ -30,7 +30,8 @@ html, body {
     padding-left: env(safe-area-inset-left);
     padding-right: env(safe-area-inset-right);
     overflow: hidden;
-    background-color: transparent;
+    /* 首帧即显示品牌背景，避免白屏（原 index.html 内联样式迁入，满足 CSP script-src 'self'） */
+    background-color: var(--brand-bg);
     color: white;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -240,6 +241,11 @@ html, body {
         padding: 12px 30px;
         font-size: 16px;
     }
+}
+
+/* 移动端隐藏桌面窗口控制（原 index.html 内联样式迁入） */
+.mobile #window-controls {
+    display: none !important;
 }
 
 @media (hover: none) and (pointer: coarse) {

@@ -104,8 +104,8 @@ impl GameState {
             if self.ball.update(dt)? {
                 events.push(GameEvent::BallBounced);
                 // 为了让运动更“无规律一些”，我们在反弹时加入随机角度偏移
-                let mut rng = rand::thread_rng();
-                let nudge = rng.gen_range(-0.1..0.1); // 增加偏移范围到约 +/- 6 度
+                let mut rng = rand::rng();
+                let nudge = rng.random_range(-0.1..0.1); // 增加偏移范围到约 +/- 6 度
                 let current_speed =
                     (self.ball.vx * self.ball.vx + self.ball.vy * self.ball.vy).sqrt();
                 let current_angle = self.ball.vy.atan2(self.ball.vx);
@@ -226,12 +226,12 @@ impl GameState {
 }
 
 pub fn stage_direction(stage: i32) -> (f64, f64) {
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
     match stage {
         1 | 5 => {
-            let angle_deg = rng.gen_range(10.0..20.0);
+            let angle_deg = rng.random_range(10.0..20.0);
             let angle_rad = angle_deg * PI / 180.0;
-            if rng.gen_bool(0.5) {
+            if rng.random_bool(0.5) {
                 (angle_rad.cos(), angle_rad.sin())
             } else {
                 (-angle_rad.cos(), angle_rad.sin())
@@ -239,14 +239,14 @@ pub fn stage_direction(stage: i32) -> (f64, f64) {
         }
         2 => {
             // Stage 2: 垂直方向带有一点随机偏角 (7-17度)
-            let angle_deg = rng.gen_range(7.0..17.0);
+            let angle_deg = rng.random_range(7.0..17.0);
             let angle_rad = angle_deg * PI / 180.0;
-            let vx = if rng.gen_bool(0.5) {
+            let vx = if rng.random_bool(0.5) {
                 angle_rad.sin()
             } else {
                 -angle_rad.sin()
             };
-            let vy = if rng.gen_bool(0.5) {
+            let vy = if rng.random_bool(0.5) {
                 angle_rad.cos()
             } else {
                 -angle_rad.cos()
@@ -255,9 +255,9 @@ pub fn stage_direction(stage: i32) -> (f64, f64) {
         }
         4 => {
             // 为 Stage 4 提供更随机的初始角度，不再仅限于垂直附近
-            let angle_deg = rng.gen_range(20.0..70.0); // 20-70度，更像对角线
+            let angle_deg = rng.random_range(20.0..70.0); // 20-70度，更像对角线
             let angle_rad = angle_deg * PI / 180.0;
-            if rng.gen_bool(0.5) {
+            if rng.random_bool(0.5) {
                 (angle_rad.sin(), angle_rad.cos())
             } else {
                 (angle_rad.sin(), -angle_rad.cos())
@@ -265,7 +265,7 @@ pub fn stage_direction(stage: i32) -> (f64, f64) {
         }
         3 => {
             // Stage 3 初始强制水平向左或向右
-            if rng.gen_bool(0.5) {
+            if rng.random_bool(0.5) {
                 (1.0, 0.0)
             } else {
                 (-1.0, 0.0)
